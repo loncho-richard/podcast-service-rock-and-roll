@@ -1,0 +1,92 @@
+# serializer version: 1
+# name: test_missing_token_is_rejected
+  dict({
+    'body': dict({
+      'error': dict({
+        'code': 'unauthorized',
+        'details': None,
+        'message': 'Missing bearer token.',
+      }),
+    }),
+    'status_code': 401,
+    'www_authenticate': 'Bearer',
+  })
+# ---
+# name: test_untrustworthy_token_is_rejected[alg-none]
+  dict({
+    'body': dict({
+      'error': dict({
+        'code': 'unauthorized',
+        'details': None,
+        'message': 'Invalid access token.',
+      }),
+    }),
+    'status_code': 401,
+    'www_authenticate': 'Bearer',
+  })
+# ---
+# name: test_untrustworthy_token_is_rejected[expired]
+  dict({
+    'body': dict({
+      'error': dict({
+        'code': 'unauthorized',
+        'details': None,
+        'message': 'Access token has expired.',
+      }),
+    }),
+    'status_code': 401,
+    'www_authenticate': 'Bearer',
+  })
+# ---
+# name: test_untrustworthy_token_is_rejected[garbage]
+  dict({
+    'body': dict({
+      'error': dict({
+        'code': 'unauthorized',
+        'details': None,
+        'message': 'Invalid access token.',
+      }),
+    }),
+    'status_code': 401,
+    'www_authenticate': 'Bearer',
+  })
+# ---
+# name: test_untrustworthy_token_is_rejected[missing-subject]
+  dict({
+    'body': dict({
+      'error': dict({
+        'code': 'unauthorized',
+        'details': None,
+        'message': 'Invalid access token.',
+      }),
+    }),
+    'status_code': 401,
+    'www_authenticate': 'Bearer',
+  })
+# ---
+# name: test_untrustworthy_token_is_rejected[wrong-issuer]
+  dict({
+    'body': dict({
+      'error': dict({
+        'code': 'unauthorized',
+        'details': None,
+        'message': 'Invalid access token.',
+      }),
+    }),
+    'status_code': 401,
+    'www_authenticate': 'Bearer',
+  })
+# ---
+# name: test_untrustworthy_token_is_rejected[wrong-signature]
+  dict({
+    'body': dict({
+      'error': dict({
+        'code': 'unauthorized',
+        'details': None,
+        'message': 'Invalid access token.',
+      }),
+    }),
+    'status_code': 401,
+    'www_authenticate': 'Bearer',
+  })
+# ---

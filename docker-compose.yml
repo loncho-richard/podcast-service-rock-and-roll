@@ -17,11 +17,15 @@ services:
 
   api:
     build: .
-    env_file:
-      - path: .env
-        required: false
     environment:
       DATABASE_URL: postgresql+asyncpg://podcasts:podcasts@db:5432/podcasts
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      # Local-only defaults so `docker compose up` works from a clean checkout.
+      # Override them via the shell or a `.env` file; never reuse them in production.
+      AUTH_CLIENT_ID: ${AUTH_CLIENT_ID:-reviewer}
+      AUTH_CLIENT_SECRET: ${AUTH_CLIENT_SECRET:-local-dev-secret-change-me}
+      JWT_SECRET: ${JWT_SECRET:-local-dev-jwt-secret-change-me-0123456789}
+      JWT_TTL_SECONDS: ${JWT_TTL_SECONDS:-3600}
     ports:
       - "8000:8000"
     depends_on:

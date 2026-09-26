@@ -5,7 +5,7 @@ from alembic import context
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from podcast_service.config import Settings
+from podcast_service.config import DatabaseSettings
 from podcast_service.infrastructure.persistence.models import Base
 
 config = context.config
@@ -17,7 +17,7 @@ target_metadata = Base.metadata
 
 def _database_url() -> str:
     # Tests inject the URL explicitly; everywhere else it comes from the environment.
-    return config.get_main_option("sqlalchemy.url") or Settings().database_url
+    return config.get_main_option("sqlalchemy.url") or DatabaseSettings().database_url
 
 
 def run_migrations_offline() -> None:

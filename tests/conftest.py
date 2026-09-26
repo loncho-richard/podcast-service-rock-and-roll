@@ -1,6 +1,8 @@
 from collections.abc import AsyncIterator, Iterator
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
+import jwt
 import pytest
 from alembic import command
 from alembic.config import Config
@@ -32,7 +34,13 @@ def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
 @pytest.fixture
 def settings() -> Settings:
     # `_env_file=None` keeps a developer's local `.env` from leaking into tests.
-    return Settings(_env_file=None, database_url=_UNREACHABLE_DATABASE_URL)  # type: ignore[call-arg]
+    return Settings(  # type: ignore[call-arg]
+        _env_file=None,
+        database_url=_UNREACHABLE_DATABASE_URL,
+        auth_client_id="test-client",
+        auth_client_secret="test-client-secret",
+        jwt_secret="test-jwt-secret-that-is-long-enough-0123456789",
+    )
 
 
 @pytest.fixture
@@ -51,6 +59,39 @@ def app(container: Container) -> FastAPI:
 async def client(app: FastAPI) -> AsyncIterator[AsyncClient]:
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         yield client
+
+
+# --- auth --------------------------------------------------------------------
+
+
+@pytest.fixture
+def auth_headers(container: Container) -> dict[str, str]:
+    token = container.token_service().issue(subject="test-client").token
+    return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture
+def forged_tokens(settings: Settings) -> dict[str, str]:
+    """Hand-made tokens, one per scenario the verifier must accept or reject."""
+    secret = settings.jwt_secret.get_secret_value()
+    now = datetime.now(UTC)
+    claims = {
+        "sub": "test-client",
+        "iss": settings.jwt_issuer,
+        "iat": now,
+        "exp": now + timedelta(hours=1),
+    }
+    without_subject = {key: value for key, value in claims.items() if key != "sub"}
+    expired = {**claims, "iat": now - timedelta(hours=2), "exp": now - timedelta(hours=1)}
+    return {
+        "valid": jwt.encode(claims, secret, algorithm="HS256"),
+        "expired": jwt.encode(expired, secret, algorithm="HS256"),
+        "wrong-signature": jwt.encode(claims, "x" * 48, algorithm="HS256"),
+        "wrong-issuer": jwt.encode({**claims, "iss": "someone-else"}, secret, algorithm="HS256"),
+        "missing-subject": jwt.encode(without_subject, secret, algorithm="HS256"),
+        "alg-none": jwt.encode(claims, None, algorithm="none"),
+        "garbage": "not-a-jwt",
+    }
 
 
 # --- database (Docker via testcontainers) -------------------------------------

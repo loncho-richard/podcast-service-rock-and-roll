@@ -9,11 +9,13 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from podcast_service.api.schemas.errors import ErrorDetail, ErrorResponse
+from podcast_service.application.auth.errors import AuthenticationError
 from podcast_service.domain.shared.exceptions import DomainError, NotFoundError
 
 logger = logging.getLogger(__name__)
 
 _DOMAIN_STATUS: dict[type[DomainError], int] = {
+    AuthenticationError: HTTPStatus.UNAUTHORIZED,
     NotFoundError: HTTPStatus.NOT_FOUND,
 }
 
@@ -53,7 +55,8 @@ async def _handle_domain_error(_: Request, exc: Exception) -> JSONResponse:
         (status for cls, status in _DOMAIN_STATUS.items() if isinstance(exc, cls)),
         HTTPStatus.UNPROCESSABLE_ENTITY,
     )
-    return error_response(status_code, exc.code, exc.message)
+    headers = {"WWW-Authenticate": "Bearer"} if isinstance(exc, AuthenticationError) else None
+    return error_response(status_code, exc.code, exc.message, headers=headers)
 
 
 async def _handle_http_error(_: Request, exc: Exception) -> JSONResponse:

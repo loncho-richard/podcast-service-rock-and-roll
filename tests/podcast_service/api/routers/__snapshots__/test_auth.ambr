@@ -1,0 +1,46 @@
+# serializer version: 1
+# name: test_bad_credentials_are_rejected[missing-password]
+  dict({
+    'body': dict({
+      'error': dict({
+        'code': 'validation_error',
+        'details': list([
+          dict({
+            'loc': list([
+              'body',
+              'password',
+            ]),
+            'msg': 'Field required',
+            'type': 'missing',
+          }),
+        ]),
+        'message': 'Invalid request.',
+      }),
+    }),
+    'status_code': 422,
+  })
+# ---
+# name: test_bad_credentials_are_rejected[wrong-client]
+  dict({
+    'body': dict({
+      'error': dict({
+        'code': 'unauthorized',
+        'details': None,
+        'message': 'Invalid client credentials.',
+      }),
+    }),
+    'status_code': 401,
+  })
+# ---
+# name: test_bad_credentials_are_rejected[wrong-secret]
+  dict({
+    'body': dict({
+      'error': dict({
+        'code': 'unauthorized',
+        'details': None,
+        'message': 'Invalid client credentials.',
+      }),
+    }),
+    'status_code': 401,
+  })
+# ---

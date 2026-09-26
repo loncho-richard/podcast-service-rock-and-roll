@@ -1,10 +1,12 @@
 from collections.abc import AsyncIterator
 
 import pytest
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from httpx import ASGITransport, AsyncClient
 
 from podcast_service.api.errors import register_exception_handlers
+from podcast_service.api.security import require_auth
+from podcast_service.container import Container
 from podcast_service.domain.shared.exceptions import DomainError, NotFoundError
 
 
@@ -37,5 +39,25 @@ def errors_app() -> FastAPI:
 async def errors_client(errors_app: FastAPI) -> AsyncIterator[AsyncClient]:
     # Starlette re-raises unhandled errors after responding; we only care about the response.
     transport = ASGITransport(app=errors_app, raise_app_exceptions=False)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        yield client
+
+
+@pytest.fixture
+def protected_client_app(container: Container) -> FastAPI:
+    """App with a single protected route; `container` wires `require_auth` to test settings."""
+    app = FastAPI()
+    register_exception_handlers(app)
+
+    @app.get("/protected")
+    async def protected(client_id: str = Depends(require_auth)) -> dict[str, str]:
+        return {"client_id": client_id}
+
+    return app
+
+
+@pytest.fixture
+async def protected_client(protected_client_app: FastAPI) -> AsyncIterator[AsyncClient]:
+    transport = ASGITransport(app=protected_client_app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         yield client
