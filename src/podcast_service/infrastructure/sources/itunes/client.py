@@ -8,7 +8,7 @@ from podcast_service.domain.ingestion.errors import SourceUnavailableError
 from podcast_service.domain.ingestion.ports import PodcastSource, SourceBatch
 from podcast_service.domain.ingestion.raw import RawPodcastRecord
 from podcast_service.domain.ingestion.summary import SourceMode
-from podcast_service.infrastructure.resilience import RetryPolicy, get_with_retry
+from podcast_service.infrastructure.resilience import RetryPolicy, get_with_retry, is_transient
 from podcast_service.infrastructure.sources.itunes.fallback import ITunesSampleFallback
 from podcast_service.infrastructure.sources.itunes.mapper import map_result, result_id
 
@@ -63,8 +63,9 @@ class ITunesPodcastSource(PodcastSource):
         try:
             results = await self._get_results("/lookup", params)
         except httpx.HTTPStatusError as exc:
-            if 400 <= exc.response.status_code < 500:
+            if not is_transient(exc):
                 return None  # iTunes answers 400 for ids it cannot parse
+            # Still failing after retries (e.g. 429 rate limit, 5xx): the source is down.
             return self._lookup_fallback(external_id, exc)
         except (httpx.HTTPError, ValueError) as exc:
             return self._lookup_fallback(external_id, exc)

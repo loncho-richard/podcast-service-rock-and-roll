@@ -1,11 +1,10 @@
 from http import HTTPStatus
-from typing import Annotated, Any
+from typing import Annotated
 
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Body, Depends, Path, Response
 
-from podcast_service.api.errors import ERROR_RESPONSES
-from podcast_service.api.schemas.errors import ErrorResponse
+from podcast_service.api.errors import COMMON_ERRORS, error_responses
 from podcast_service.api.schemas.ingestion import (
     BulkIngestionRequest,
     IngestionSummaryResponse,
@@ -21,15 +20,8 @@ router = APIRouter(
     prefix="/ingestion",
     tags=["ingestion"],
     dependencies=[Depends(require_auth)],
-    responses=ERROR_RESPONSES,
+    responses=COMMON_ERRORS,
 )
-
-_SOURCE_UNAVAILABLE: dict[int | str, dict[str, Any]] = {
-    HTTPStatus.SERVICE_UNAVAILABLE: {
-        "model": ErrorResponse,
-        "description": "The source is down and the podcast is not in the offline sample.",
-    }
-}
 
 
 @router.post(
@@ -60,7 +52,10 @@ async def bulk_ingest(
         "unchanged). `422` when the podcast exists but is rejected, e.g. not rock & roll."
     ),
     status_code=HTTPStatus.OK,
-    responses={HTTPStatus.CREATED: {"model": SingleIngestionResponse}, **_SOURCE_UNAVAILABLE},
+    responses={
+        HTTPStatus.CREATED: {"model": SingleIngestionResponse, "description": "Created."},
+        **error_responses(HTTPStatus.NOT_FOUND, HTTPStatus.SERVICE_UNAVAILABLE),
+    },
 )
 @inject
 async def ingest_single(

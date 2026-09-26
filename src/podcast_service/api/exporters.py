@@ -58,8 +58,9 @@ def _csv_cell(value: object) -> str:
     if value is None:
         return ""
     if isinstance(value, list):
-        return _LIST_SEPARATOR.join(str(item) for item in value)
-    text = str(value)
+        text = _LIST_SEPARATOR.join(str(item) for item in value)
+    else:
+        text = str(value)
     return f"'{text}" if text.startswith(_FORMULA_PREFIXES) else text
 
 

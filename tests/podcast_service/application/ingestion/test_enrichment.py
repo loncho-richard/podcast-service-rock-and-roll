@@ -8,6 +8,7 @@ from fakes import (
     BROKEN_COVER_URL,
     COVER_PALETTE,
     COVER_URL,
+    CRASHING_COVER_URL,
     FEED_URL,
     UNDECODABLE_COVER_URL,
     FakeFeedReader,
@@ -34,8 +35,9 @@ async def test_feed_details_and_palette_are_added(enricher: PodcastEnricher) -> 
         ({"cover_image_url": None}, False),
         ({"cover_image_url": BROKEN_COVER_URL}, True),
         ({"cover_image_url": UNDECODABLE_COVER_URL}, True),
+        ({"cover_image_url": CRASHING_COVER_URL}, True),
     ],
-    ids=["no-cover", "download-fails", "extraction-fails"],
+    ids=["no-cover", "download-fails", "extraction-fails", "extractor-crashes"],
 )
 async def test_missing_or_broken_covers_never_fail_the_podcast(
     enricher: PodcastEnricher, overrides: dict[str, Any], palette_failed: bool

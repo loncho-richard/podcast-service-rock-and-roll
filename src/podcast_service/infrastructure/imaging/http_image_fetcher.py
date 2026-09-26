@@ -13,16 +13,23 @@ class HttpImageFetcher(ImageFetcher):
     """Downloads cover images, refusing non-images and anything above `max_bytes`."""
 
     def __init__(
-        self, http_client: httpx.AsyncClient, retry_policy: RetryPolicy, max_bytes: int
+        self,
+        http_client: httpx.AsyncClient,
+        retry_policy: RetryPolicy,
+        max_bytes: int,
+        deadline_seconds: float,
     ) -> None:
         self._http = http_client
         self._retry_policy = retry_policy
         self._max_bytes = max_bytes
+        self._deadline_seconds = deadline_seconds
 
     async def fetch(self, url: str) -> bytes | None:
         try:
-            body = await download(self._http, url, self._retry_policy, self._max_bytes)
-        except (httpx.HTTPError, httpx.InvalidURL) as exc:
+            body = await download(
+                self._http, url, self._retry_policy, self._max_bytes, self._deadline_seconds
+            )
+        except (httpx.HTTPError, httpx.InvalidURL, TimeoutError) as exc:
             logger.warning("Could not download cover %s: %r", url, exc)
             return None
         if not body.content_type.startswith("image/"):

@@ -1,3 +1,4 @@
+from http import HTTPStatus
 from typing import Annotated
 from uuid import UUID
 
@@ -5,7 +6,7 @@ from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import StreamingResponse
 
-from podcast_service.api.errors import ERROR_RESPONSES
+from podcast_service.api.errors import COMMON_ERRORS, error_responses
 from podcast_service.api.exporters import ExportFormat, export_stream
 from podcast_service.api.schemas.podcasts import PodcastPage, PodcastResponse
 from podcast_service.api.security import require_auth
@@ -17,7 +18,7 @@ router = APIRouter(
     prefix="/podcasts",
     tags=["podcasts"],
     dependencies=[Depends(require_auth)],
-    responses=ERROR_RESPONSES,
+    responses=COMMON_ERRORS,
 )
 
 
@@ -27,12 +28,17 @@ async def list_podcasts(
     q: Annotated[
         str | None,
         Query(
-            min_length=1, max_length=100, description="Case-insensitive match on title or author."
+            max_length=100,
+            description="Case-insensitive match on title or author; blank is ignored.",
         ),
     ] = None,
     genre: Annotated[
         str | None,
-        Query(min_length=1, max_length=100, description="Exact genre, e.g. `Music History`."),
+        Query(
+            min_length=1,
+            max_length=100,
+            description="Exact, case-sensitive genre as returned by the API, e.g. `Music History`.",
+        ),
     ] = None,
     language: Annotated[
         str | None,
@@ -46,7 +52,7 @@ async def list_podcasts(
     use_case: ListPodcasts = Depends(Provide[Container.list_podcasts]),
 ) -> PodcastPage:
     result = await use_case.execute(
-        PodcastFilters(query=q, genre=genre, language=language),
+        PodcastFilters(query=(q or "").strip() or None, genre=genre, language=language),
         PageRequest(page=page, page_size=page_size),
     )
     return PodcastPage.from_domain(result)
@@ -81,7 +87,11 @@ async def export_podcasts(
     )
 
 
-@router.get("/{podcast_id}", summary="Get a podcast by id")
+@router.get(
+    "/{podcast_id}",
+    summary="Get a podcast by id",
+    responses=error_responses(HTTPStatus.NOT_FOUND),
+)
 @inject
 async def get_podcast(
     podcast_id: UUID,

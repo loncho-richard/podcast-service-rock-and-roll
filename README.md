@@ -78,7 +78,7 @@ ITUNES_BASE_URL=https://itunes.invalid docker compose up -d api
 | POST | `/auth/token` | public | Client credentials (OAuth2 form: `username`/`password`) → bearer JWT. |
 | POST | `/ingestion/bulk` | bearer | Search iTunes, clean, enrich, upsert. Idempotent. Returns a summary. |
 | POST | `/ingestion/podcasts/{itunes_id}` | bearer | Ingest one podcast. `201` new, `200` existing, `404` unknown, `422` rejected (e.g. not rock), `503` source down. |
-| GET | `/podcasts` | bearer | Paginated list (`page`, `page_size` ≤ 100); filters `q` (title/author), `genre`, `language` (`en` matches `en-US`). |
+| GET | `/podcasts` | bearer | Paginated list (`page`, `page_size` ≤ 100); filters `q` (title/author, case-insensitive), `genre` (exact), `language` (`en` matches `en-US`). |
 | GET | `/podcasts/{id}` | bearer | One podcast. |
 | GET | `/podcasts/export` | bearer | Whole catalog, streamed as NDJSON (default) or CSV (`?format=csv`). |
 
@@ -111,6 +111,7 @@ the ones marked *compose* and gives them local defaults.
 | `ENRICHMENT_CONCURRENCY` | `8` | Podcasts enriched in parallel. |
 | `MAX_FEED_BYTES` | `2000000` | RSS download cap (the header is read, the rest truncated). |
 | `MAX_COVER_BYTES` | `5000000` | Covers above this are skipped. |
+| `DOWNLOAD_DEADLINE_SECONDS` | `30` | Hard cap per feed/cover download, retries included. |
 | `PALETTE_SIZE` | `5` | Colors per palette. |
 
 Generate a real secret with `python -c "import secrets; print(secrets.token_urlsafe(48))"`.

@@ -7,7 +7,7 @@ from podcast_service.infrastructure.resilience import RetryPolicy
 
 @pytest.fixture
 def rss_reader(http_client: httpx.AsyncClient, retry_policy: RetryPolicy) -> RssFeedReader:
-    return RssFeedReader(http_client, retry_policy, max_bytes=10_000)
+    return RssFeedReader(http_client, retry_policy, max_bytes=10_000, deadline_seconds=5)
 
 
 @pytest.fixture

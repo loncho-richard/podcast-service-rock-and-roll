@@ -27,7 +27,6 @@ def create_app(container: Container | None = None) -> FastAPI:
         description="Catalog of rock & roll podcasts: ingestion, search and export.",
         lifespan=lifespan,
     )
-    app.state.container = container
     register_exception_handlers(app)
     app.include_router(health.router)
     app.include_router(auth.router)

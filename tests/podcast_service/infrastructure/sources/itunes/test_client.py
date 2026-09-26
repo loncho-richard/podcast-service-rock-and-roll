@@ -133,10 +133,15 @@ async def test_lookup_returns_none_when_there_is_no_such_podcast(
     assert await source.lookup("1001") is None
 
 
+@pytest.mark.parametrize(
+    "response",
+    [httpx.Response(503), httpx.Response(429, headers={"Retry-After": "0"})],
+    ids=["server-error", "rate-limited"],
+)
 async def test_lookup_falls_back_to_the_sample_when_the_source_is_down(
-    respx_mock: respx.MockRouter, source: ITunesPodcastSource
+    respx_mock: respx.MockRouter, source: ITunesPodcastSource, response: httpx.Response
 ) -> None:
-    respx_mock.get(LOOKUP_URL).mock(return_value=httpx.Response(503))
+    respx_mock.get(LOOKUP_URL).mock(return_value=response)
 
     record = await source.lookup("9002")
 

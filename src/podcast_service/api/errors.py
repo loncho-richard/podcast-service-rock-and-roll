@@ -31,10 +31,27 @@ _HTTP_CODES: dict[int, str] = {
     HTTPStatus.SERVICE_UNAVAILABLE: "service_unavailable",
 }
 
-# Documented in OpenAPI for every route that can fail with the shared error shape.
-ERROR_RESPONSES: dict[int | str, dict[str, Any]] = {
-    status: {"model": ErrorResponse} for status in (401, 404, 422, 500)
+_ERROR_DESCRIPTIONS: dict[int, str] = {
+    HTTPStatus.UNAUTHORIZED: "Missing, invalid or expired credentials.",
+    HTTPStatus.NOT_FOUND: "The resource does not exist.",
+    HTTPStatus.UNPROCESSABLE_ENTITY: "Invalid request, or a rejected podcast.",
+    HTTPStatus.INTERNAL_SERVER_ERROR: "Unexpected error.",
+    HTTPStatus.SERVICE_UNAVAILABLE: "The source is unavailable.",
 }
+
+
+def error_responses(*status_codes: int) -> dict[int | str, dict[str, Any]]:
+    """OpenAPI `responses` for the given error codes, all using the shared error shape."""
+    return {
+        int(status): {"model": ErrorResponse, "description": _ERROR_DESCRIPTIONS[status]}
+        for status in status_codes
+    }
+
+
+# Every protected route can fail with these.
+COMMON_ERRORS = error_responses(
+    HTTPStatus.UNAUTHORIZED, HTTPStatus.UNPROCESSABLE_ENTITY, HTTPStatus.INTERNAL_SERVER_ERROR
+)
 
 
 def error_response(

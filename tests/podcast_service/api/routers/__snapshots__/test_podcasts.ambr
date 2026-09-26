@@ -53,27 +53,6 @@
     'status_code': 422,
   })
 # ---
-# name: test_list_rejects_invalid_parameters[empty-query]
-  dict({
-    'body': dict({
-      'error': dict({
-        'code': 'validation_error',
-        'details': list([
-          dict({
-            'loc': list([
-              'query',
-              'q',
-            ]),
-            'msg': 'String should have at least 1 character',
-            'type': 'string_too_short',
-          }),
-        ]),
-        'message': 'Invalid request.',
-      }),
-    }),
-    'status_code': 422,
-  })
-# ---
 # name: test_list_rejects_invalid_parameters[page-size-too-big]
   dict({
     'body': dict({
@@ -108,6 +87,27 @@
             ]),
             'msg': 'Input should be greater than or equal to 1',
             'type': 'greater_than_equal',
+          }),
+        ]),
+        'message': 'Invalid request.',
+      }),
+    }),
+    'status_code': 422,
+  })
+# ---
+# name: test_list_rejects_invalid_parameters[query-too-long]
+  dict({
+    'body': dict({
+      'error': dict({
+        'code': 'validation_error',
+        'details': list([
+          dict({
+            'loc': list([
+              'query',
+              'q',
+            ]),
+            'msg': 'String should have at most 100 characters',
+            'type': 'string_too_long',
           }),
         ]),
         'message': 'Invalid request.',

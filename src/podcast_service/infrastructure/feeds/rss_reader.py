@@ -21,15 +21,22 @@ class RssFeedReader(FeedReader):
     """
 
     def __init__(
-        self, http_client: httpx.AsyncClient, retry_policy: RetryPolicy, max_bytes: int
+        self,
+        http_client: httpx.AsyncClient,
+        retry_policy: RetryPolicy,
+        max_bytes: int,
+        deadline_seconds: float,
     ) -> None:
         self._http = http_client
         self._retry_policy = retry_policy
         self._max_bytes = max_bytes
+        self._deadline_seconds = deadline_seconds
 
     async def read(self, feed_url: str) -> FeedDetails | None:
         try:
-            body = await download(self._http, feed_url, self._retry_policy, self._max_bytes)
+            body = await download(
+                self._http, feed_url, self._retry_policy, self._max_bytes, self._deadline_seconds
+            )
             parsed: Any = await asyncio.to_thread(feedparser.parse, body.content)
         except Exception as exc:  # enrichment must never break an ingestion
             logger.warning("Could not read feed %s: %r", feed_url, exc)

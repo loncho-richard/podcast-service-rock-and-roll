@@ -92,7 +92,7 @@ def stored_podcasts() -> list[Podcast]:
             author="-Spreadsheet, Injection",
             description=None,
             palette=None,
-            genres=("Music", "Rock, Punk"),
+            genres=("=1+1", "Music", "Rock, Punk"),
         ),
     ]
 

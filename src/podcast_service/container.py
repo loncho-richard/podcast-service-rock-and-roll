@@ -95,12 +95,14 @@ class Container(containers.DeclarativeContainer):
             http_client=http_client,
             retry_policy=enrichment_retry_policy,
             max_bytes=settings.provided.max_feed_bytes,
+            deadline_seconds=settings.provided.download_deadline_seconds,
         ),
         image_fetcher=providers.Singleton(
             HttpImageFetcher,
             http_client=http_client,
             retry_policy=enrichment_retry_policy,
             max_bytes=settings.provided.max_cover_bytes,
+            deadline_seconds=settings.provided.download_deadline_seconds,
         ),
         palette_extractor=providers.Singleton(
             PillowPaletteExtractor, colors=settings.provided.palette_size

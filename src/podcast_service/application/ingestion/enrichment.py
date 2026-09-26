@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from collections.abc import Sequence
 from dataclasses import dataclass, replace
 
@@ -6,6 +7,8 @@ from podcast_service.domain.ingestion.normalizer import PodcastNormalizer
 from podcast_service.domain.ingestion.ports import FeedReader, ImageFetcher, PaletteExtractor
 from podcast_service.domain.podcast.entities import Podcast
 from podcast_service.domain.podcast.value_objects import ColorPalette
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True, slots=True)
@@ -46,9 +49,15 @@ class PodcastEnricher:
         return list(await asyncio.gather(*(bounded(podcast) for podcast in podcasts)))
 
     async def enrich(self, podcast: Podcast) -> EnrichmentResult:
-        enriched, palette = await asyncio.gather(
-            self._with_feed_details(podcast), self._palette(podcast.cover_image_url)
-        )
+        try:
+            enriched, palette = await asyncio.gather(
+                self._with_feed_details(podcast), self._palette(podcast.cover_image_url)
+            )
+        except Exception:
+            # Adapters already degrade gracefully; this is the last line of defence so an
+            # unexpected bug in one podcast's enrichment never fails the whole batch.
+            logger.exception("Enrichment of %s failed unexpectedly", podcast.ref)
+            return EnrichmentResult(podcast, palette_failed=podcast.cover_image_url is not None)
         return EnrichmentResult(
             podcast=replace(enriched, palette=palette),
             palette_failed=podcast.cover_image_url is not None and palette is None,

@@ -1,3 +1,5 @@
+import asyncio
+
 import httpx
 import pytest
 import respx
@@ -39,3 +41,16 @@ async def test_unusable_covers_return_none(
 
 async def test_malformed_url_returns_none(image_fetcher: HttpImageFetcher) -> None:
     assert await image_fetcher.fetch("https://") is None
+
+
+async def _never_finishes(request: httpx.Request) -> httpx.Response:
+    await asyncio.sleep(5)
+    return httpx.Response(200, content=b"late", headers={"Content-Type": "image/png"})
+
+
+async def test_slow_cover_returns_none_at_the_deadline(
+    respx_mock: respx.MockRouter, image_fetcher: HttpImageFetcher
+) -> None:
+    respx_mock.get(COVER_URL).mock(side_effect=_never_finishes)
+
+    assert await image_fetcher.fetch(COVER_URL) is None

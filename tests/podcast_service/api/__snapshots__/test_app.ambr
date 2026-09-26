@@ -1,0 +1,49 @@
+# serializer version: 1
+# name: test_openapi_documents_the_status_codes_of_each_route
+  dict({
+    'GET /health': list([
+      '200',
+      '503',
+    ]),
+    'GET /podcasts': list([
+      '200',
+      '401',
+      '422',
+      '500',
+    ]),
+    'GET /podcasts/export': list([
+      '200',
+      '401',
+      '422',
+      '500',
+    ]),
+    'GET /podcasts/{podcast_id}': list([
+      '200',
+      '401',
+      '404',
+      '422',
+      '500',
+    ]),
+    'POST /auth/token': list([
+      '200',
+      '401',
+      '422',
+      '500',
+    ]),
+    'POST /ingestion/bulk': list([
+      '200',
+      '401',
+      '422',
+      '500',
+    ]),
+    'POST /ingestion/podcasts/{itunes_id}': list([
+      '200',
+      '201',
+      '401',
+      '404',
+      '422',
+      '500',
+      '503',
+    ]),
+  })
+# ---

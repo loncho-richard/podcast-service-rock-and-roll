@@ -58,6 +58,7 @@ One table, `podcasts`:
 | `title`, `author` | text | Required. Trigram (GIN) indexes back the `q` search. |
 | `description` | text | From the RSS feed (`itunes:summary`, else `<description>`), HTML stripped. |
 | `language` | text | From the RSS feed, normalized (`en-us` → `en-US`). Indexed. |
+| *(index)* | `(title, id)` | B-tree serving the catalog order: listing pages and the export cursor read it directly instead of sorting the table (0.2 ms for a page over 100k rows). |
 | `genres` | text[] | iTunes genres minus the generic "Podcasts". GIN index. |
 | `palette` | JSONB | Dominant cover colors, e.g. `["#1a1a1a", "#c0392b"]`, most dominant first. |
 | `country`, `primary_genre`, `feed_url`, `store_url`, `cover_image_url`, `explicit`, `episode_count`, `released_at` | | As provided by iTunes, cleaned. |
@@ -196,7 +197,16 @@ A missing or broken cover never fails an ingestion: the podcast is stored with
 - **Fallback and degradation:** the offline sample covers the source. Feeds and
   covers degrade gracefully.
 - **Limits:** bounded enrichment concurrency (8), download size caps (2 MB feeds, of
-  which only the header is needed; 5 MB covers) and timeouts on every call.
+  which only the header is needed; 5 MB covers) and timeouts on every call. Every
+  feed/cover download also has a 30 s total deadline, retries included: httpx
+  timeouts apply per network operation, so without it a server trickling bytes
+  could stall a whole bulk ingestion.
+- **Last line of defence:** each adapter degrades gracefully on its own, and the
+  enricher also contains any unexpected exception per podcast, so one bad cover
+  can never fail the batch.
+- **Rate limiting on lookups:** a single-podcast lookup that is still rate-limited
+  (429) after retries counts as "source unavailable" (fallback sample or `503`),
+  never as "podcast not found".
 - **No circuit breaker:** with synchronous, user-triggered ingestion it adds little.
   It becomes worth it once ingestion runs continuously (see below).
 
@@ -229,7 +239,10 @@ below) would fix that.
 
 Pagination is offset based (`page`, `page_size` ≤ 100, with `total` and `total_pages`).
 It is simple and fine for a catalog this size, but deep pages get slower and can shift
-when data changes. I'd move to keyset (cursor) pagination on `(title, id)` first if the
+when data changes. `q` is a case-insensitive substring match and a blank `q` is
+ignored. `genre` is an exact, case-sensitive match on the values the API returns: it
+uses the GIN index, and case-insensitive matching would need a normalized copy of
+the genres. I'd move to keyset (cursor) pagination on `(title, id)` first if the
 catalog grew.
 
 ## Assumptions
@@ -239,6 +252,21 @@ catalog grew.
 - The bulk `limit` means results **per search term** (it maps to iTunes' `limit`).
 - Ingesting the same podcast from another source would create a separate record,
   because the natural key includes the source.
+
+## Known risks
+
+- **SSRF via feed and cover URLs.** Those URLs come from a third party (the podcast
+  publisher, through iTunes), and the service fetches them and follows redirects.
+  Only `http(s)` is allowed, downloads are size- and time-capped, and nothing
+  fetched is ever returned to the caller except the derived palette and description.
+  A crafted feed URL could still make the service reach internal addresses. In
+  production I would send enrichment traffic through an egress proxy (or a network
+  policy) that blocks private, loopback and metadata ranges, which is more robust
+  than resolving and checking IPs in application code (DNS rebinding).
+- **A single large transaction per bulk ingestion.** Enrichment happens before the
+  transaction, but all upserts commit together; a database error on one row rolls
+  back the batch (the data is validated first, so this is unlikely). Per-row
+  savepoints, or batches of a few hundred, would isolate failures.
 
 ## What I would do with more time
 

@@ -47,6 +47,7 @@ async def test_list_returns_a_page_of_podcasts(
     ("params", "expected_titles"),
     [
         ({}, ALL_TITLES),
+        ({"q": "   "}, ALL_TITLES),
         ({"q": "rock"}, ["Classic Rock Hour", "Rock Nacional"]),
         ({"q": "RADIO"}, ["Classic Rock Hour", "Rock Nacional"]),
         ({"genre": "Music History"}, ["Classic Rock Hour"]),
@@ -54,7 +55,16 @@ async def test_list_returns_a_page_of_podcasts(
         ({"q": "rock", "language": "es-AR"}, ["Rock Nacional"]),
         ({"q": "jazz"}, []),
     ],
-    ids=["all", "search-title", "search-author", "genre", "language", "combined", "none"],
+    ids=[
+        "all",
+        "blank-search-ignored",
+        "search-title",
+        "search-author",
+        "genre",
+        "language",
+        "combined",
+        "none",
+    ],
 )
 async def test_list_filters(
     client: AsyncClient,
@@ -81,8 +91,8 @@ async def test_list_pagination_metadata(client: AsyncClient, auth_headers: dict[
 
 @pytest.mark.parametrize(
     "params",
-    [{"page": 0}, {"page_size": 101}, {"q": ""}, {"language": "english!"}],
-    ids=["page-zero", "page-size-too-big", "empty-query", "bad-language"],
+    [{"page": 0}, {"page_size": 101}, {"q": "x" * 101}, {"language": "english!"}],
+    ids=["page-zero", "page-size-too-big", "query-too-long", "bad-language"],
 )
 async def test_list_rejects_invalid_parameters(
     client: AsyncClient,

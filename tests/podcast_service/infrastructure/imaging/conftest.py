@@ -44,4 +44,4 @@ def small_limit_extractor() -> PillowPaletteExtractor:
 
 @pytest.fixture
 def image_fetcher(http_client: httpx.AsyncClient, retry_policy: RetryPolicy) -> HttpImageFetcher:
-    return HttpImageFetcher(http_client, retry_policy, max_bytes=1_000)
+    return HttpImageFetcher(http_client, retry_policy, max_bytes=1_000, deadline_seconds=0.2)

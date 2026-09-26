@@ -30,6 +30,8 @@ class PodcastModel(Base):
         ),
         Index("ix_podcasts_genres", "genres", postgresql_using="gin"),
         Index("ix_podcasts_language", "language"),
+        # Serves the catalog order (listing and export) without sorting the table.
+        Index("ix_podcasts_title_id", "title", "id"),
     )
 
     id: Mapped[UUID] = mapped_column(primary_key=True)

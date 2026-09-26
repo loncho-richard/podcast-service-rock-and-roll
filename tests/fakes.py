@@ -30,6 +30,7 @@ FEED_URL = "https://feeds.example.com/classic-rock.xml"
 COVER_URL = "https://images.example.com/classic-rock.jpg"
 BROKEN_COVER_URL = "https://images.example.com/broken.jpg"
 UNDECODABLE_COVER_URL = "https://images.example.com/undecodable.jpg"
+CRASHING_COVER_URL = "https://images.example.com/crashing.jpg"
 COVER_PALETTE = ColorPalette.from_hex(["#111111", "#eeeeee"])
 
 
@@ -51,14 +52,20 @@ class FakeFeedReader(FeedReader):
 
 class FakeImageFetcher(ImageFetcher):
     """COVER_URL is a good image, UNDECODABLE_COVER_URL downloads but is corrupt,
-    anything else fails to download."""
+    CRASHING_COVER_URL makes the extractor raise, anything else fails to download."""
 
     async def fetch(self, url: str) -> bytes | None:
-        return {COVER_URL: b"good-image", UNDECODABLE_COVER_URL: b"corrupt"}.get(url)
+        return {
+            COVER_URL: b"good-image",
+            UNDECODABLE_COVER_URL: b"corrupt",
+            CRASHING_COVER_URL: b"crash",
+        }.get(url)
 
 
 class FakePaletteExtractor(PaletteExtractor):
     def extract(self, image: bytes) -> ColorPalette | None:
+        if image == b"crash":
+            raise RuntimeError("a bug the adapter did not anticipate")
         return COVER_PALETTE if image == b"good-image" else None
 
 

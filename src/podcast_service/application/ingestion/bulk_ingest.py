@@ -1,3 +1,4 @@
+import logging
 from collections import Counter
 from collections.abc import Callable, Sequence
 
@@ -7,6 +8,8 @@ from podcast_service.domain.ingestion.normalizer import PodcastNormalizer
 from podcast_service.domain.ingestion.ports import PodcastSource
 from podcast_service.domain.ingestion.summary import IngestionSummary
 from podcast_service.domain.podcast.repository import UpsertOutcome
+
+logger = logging.getLogger(__name__)
 
 
 class BulkIngestPodcasts:
@@ -39,7 +42,7 @@ class BulkIngestPodcasts:
                 outcomes[outcome] += 1
             await uow.commit()
 
-        return IngestionSummary(
+        summary = IngestionSummary(
             source_mode=batch.mode,
             fetched=len(batch.records),
             created=outcomes[UpsertOutcome.CREATED],
@@ -48,3 +51,17 @@ class BulkIngestPodcasts:
             palette_failures=sum(result.palette_failed for result in enriched),
             skipped_records=tuple(skipped),
         )
+        logger.info(
+            "Bulk ingestion (%s): fetched=%d created=%d updated=%d unchanged=%d skipped=%d "
+            "palette_failures=%d",
+            summary.source_mode,
+            summary.fetched,
+            summary.created,
+            summary.updated,
+            summary.unchanged,
+            summary.skipped,
+            summary.palette_failures,
+        )
+        for record in summary.skipped_records:
+            logger.info("Skipped %s (%s): %s", record.external_id, record.title, record.reason)
+        return summary

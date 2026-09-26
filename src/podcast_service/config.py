@@ -46,4 +46,6 @@ class Settings(DatabaseSettings):
     enrichment_retry_attempts: int = Field(default=2, ge=1)
     max_feed_bytes: int = Field(default=2_000_000, gt=0)
     max_cover_bytes: int = Field(default=5_000_000, gt=0)
+    # Hard cap per feed/cover download, retries included (see infrastructure/http.py).
+    download_deadline_seconds: float = Field(default=30.0, gt=0)
     palette_size: int = Field(default=5, ge=1, le=16)
