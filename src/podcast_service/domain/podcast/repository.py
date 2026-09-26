@@ -10,12 +10,16 @@ from podcast_service.domain.podcast.filters import Page, PageRequest, PodcastFil
 class UpsertOutcome(StrEnum):
     CREATED = "created"
     UPDATED = "updated"
+    UNCHANGED = "unchanged"
 
 
 class PodcastRepository(ABC):
     @abstractmethod
     async def upsert(self, podcast: Podcast) -> tuple[Podcast, UpsertOutcome]:
-        """Insert or update by `ref` (source + external id). Returns the stored podcast."""
+        """Insert or update by `ref` (source + external id). Returns the stored podcast.
+
+        Re-sending identical data is reported as UNCHANGED and does not touch the row.
+        """
 
     @abstractmethod
     async def get(self, podcast_id: UUID) -> Podcast | None: ...

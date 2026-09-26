@@ -23,6 +23,8 @@ RUN useradd --create-home --uid 1000 app
 WORKDIR /app
 
 COPY --from=builder --chown=app:app /app/.venv /app/.venv
+COPY --chown=app:app alembic.ini ./
+COPY --chown=app:app migrations ./migrations
 
 ENV PATH="/app/.venv/bin:$PATH" \
     PYTHONUNBUFFERED=1
@@ -30,4 +32,5 @@ ENV PATH="/app/.venv/bin:$PATH" \
 USER app
 EXPOSE 8000
 
-CMD ["uvicorn", "podcast_service.api.app:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000"]
+# Apply pending migrations, then serve. Fine for a single instance; see NOTES.md for prod.
+CMD ["sh", "-c", "alembic upgrade head && exec uvicorn podcast_service.api.app:create_app --factory --host 0.0.0.0 --port 8000"]

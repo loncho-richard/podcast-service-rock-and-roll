@@ -28,12 +28,13 @@ class IngestionSummary:
     fetched: int
     created: int = 0
     updated: int = 0
+    unchanged: int = 0
     palette_failures: int = 0
     skipped_records: tuple[SkippedRecord, ...] = ()
 
     @property
     def stored(self) -> int:
-        return self.created + self.updated
+        return self.created + self.updated + self.unchanged
 
     @property
     def skipped(self) -> int:

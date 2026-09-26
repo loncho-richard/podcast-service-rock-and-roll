@@ -1,4 +1,6 @@
 import logging
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
@@ -13,10 +15,16 @@ def create_app(container: Container | None = None) -> FastAPI:
     settings = container.settings()
     logging.basicConfig(level=settings.log_level)
 
+    @asynccontextmanager
+    async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+        yield
+        await container.engine().dispose()
+
     app = FastAPI(
         title=settings.app_name,
         version="0.1.0",
         description="Catalog of rock & roll podcasts: ingestion, search and export.",
+        lifespan=lifespan,
     )
     app.state.container = container
     register_exception_handlers(app)
