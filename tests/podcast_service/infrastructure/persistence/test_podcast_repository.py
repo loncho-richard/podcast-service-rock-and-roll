@@ -46,6 +46,18 @@ async def test_upserting_changed_data_updates_in_place(
     )
 
 
+async def test_reingesting_without_enrichment_keeps_the_enriched_fields(
+    repository: SqlAlchemyPodcastRepository, podcast: Podcast
+) -> None:
+    first, _ = await repository.upsert(podcast)
+
+    again, outcome = await repository.upsert(
+        replace(podcast, description=None, language=None, palette=None)
+    )
+
+    assert (outcome, again) == (UpsertOutcome.UNCHANGED, first)
+
+
 async def test_get_returns_the_stored_podcast(
     repository: SqlAlchemyPodcastRepository, catalog: list[Podcast]
 ) -> None:

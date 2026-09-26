@@ -11,7 +11,9 @@ dependencies = [
     "asyncpg>=0.31.0",
     "dependency-injector>=4.49.1",
     "fastapi>=0.141.1",
+    "feedparser>=6.0.14",
     "httpx>=0.28.1",
+    "pillow>=12.3.0",
     "pydantic-settings>=2.15.0",
     "pyjwt>=2.15.0",
     "python-multipart>=0.0.32",
@@ -55,7 +57,7 @@ mypy_path = "src"
 packages = ["podcast_service"]
 
 [[tool.mypy.overrides]]
-module = ["dependency_injector.*"]
+module = ["dependency_injector.*", "feedparser.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

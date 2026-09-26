@@ -45,7 +45,8 @@ class PodcastModel(Base):
     feed_url: Mapped[str | None] = mapped_column(Text)
     store_url: Mapped[str | None] = mapped_column(Text)
     cover_image_url: Mapped[str | None] = mapped_column(Text)
-    palette: Mapped[list[Any] | None] = mapped_column(JSONB)
+    # none_as_null: store SQL NULL, not the JSON literal `null`, so COALESCE works.
+    palette: Mapped[list[Any] | None] = mapped_column(JSONB(none_as_null=True))
     explicit: Mapped[bool] = mapped_column(server_default="false")
     episode_count: Mapped[int | None]
     released_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

@@ -42,6 +42,9 @@ _MUTABLE_COLUMNS = (
     "episode_count",
     "released_at",
 )
+# Filled by best-effort enrichment (RSS feed, cover image). A re-ingestion whose feed
+# or cover happens to be unreachable must not erase what an earlier run stored.
+_ENRICHED_COLUMNS = frozenset({"description", "language", "palette"})
 
 
 class SqlAlchemyPodcastRepository(PodcastRepository):
@@ -52,12 +55,20 @@ class SqlAlchemyPodcastRepository(PodcastRepository):
         values = _to_row(podcast)
         insert_stmt = insert(_TABLE).values(id=uuid4(), **values)
         excluded = insert_stmt.excluded
+        incoming = {
+            name: (
+                func.coalesce(excluded[name], _TABLE.c[name])
+                if name in _ENRICHED_COLUMNS
+                else excluded[name]
+            )
+            for name in _MUTABLE_COLUMNS
+        }
         stmt = insert_stmt.on_conflict_do_update(
             constraint="uq_podcasts_source_external_id",
-            set_={**{name: excluded[name] for name in _MUTABLE_COLUMNS}, "updated_at": func.now()},
+            set_={**incoming, "updated_at": func.now()},
             # Only touch the row when something actually changed.
             where=tuple_(*(_TABLE.c[name] for name in _MUTABLE_COLUMNS)).is_distinct_from(
-                tuple_(*(excluded[name] for name in _MUTABLE_COLUMNS))
+                tuple_(*incoming.values())
             ),
         ).returning(*_TABLE.c, literal_column("xmax = 0").label("inserted"))
 

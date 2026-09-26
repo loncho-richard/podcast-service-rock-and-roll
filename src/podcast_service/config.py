@@ -40,3 +40,10 @@ class Settings(DatabaseSettings):
         "heavy metal",
         "rockabilly",
     ]
+
+    # Enrichment (RSS details + cover palette), all best effort.
+    enrichment_concurrency: int = Field(default=8, ge=1)
+    enrichment_retry_attempts: int = Field(default=2, ge=1)
+    max_feed_bytes: int = Field(default=2_000_000, gt=0)
+    max_cover_bytes: int = Field(default=5_000_000, gt=0)
+    palette_size: int = Field(default=5, ge=1, le=16)
