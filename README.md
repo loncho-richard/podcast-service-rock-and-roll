@@ -15,7 +15,7 @@ Design decisions, trade-offs and the architecture overview are in [NOTES.md](NOT
 Prerequisites: Docker with Compose v2.
 
 ```bash
-git clone <this-repo> && cd podcast-service-rock-and-roll
+git clone https://github.com/loncho-richard/podcast-service-rock-and-roll.git && cd podcast-service-rock-and-roll
 docker compose up --build
 ```
 
