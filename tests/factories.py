@@ -7,9 +7,8 @@ from typing import Any
 from polyfactory import Use
 from polyfactory.factories import DataclassFactory
 
-from podcast_service.domain.ingestion.raw import RawPodcastRecord
-from podcast_service.domain.podcast.entities import Podcast
-from podcast_service.domain.podcast.value_objects import ColorPalette, ExternalRef
+from podcast_service.domain.ingestion import RawPodcastRecord
+from podcast_service.domain.podcast import ColorPalette, ExternalRef, Podcast
 
 _external_ids = count(1000)
 

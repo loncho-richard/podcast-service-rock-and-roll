@@ -5,10 +5,8 @@ import pytest
 import respx
 
 from factories import build_itunes_response, build_itunes_result
-from podcast_service.domain.ingestion.errors import SourceUnavailableError
-from podcast_service.domain.ingestion.ports import SourceBatch
-from podcast_service.domain.ingestion.summary import SourceMode
-from podcast_service.infrastructure.sources.itunes.client import ITunesPodcastSource
+from podcast_service.domain.ingestion import SourceBatch, SourceMode, SourceUnavailableError
+from podcast_service.infrastructure.sources.itunes import ITunesPodcastSource
 
 SEARCH_URL = "https://itunes.test/search"
 LOOKUP_URL = "https://itunes.test/lookup"

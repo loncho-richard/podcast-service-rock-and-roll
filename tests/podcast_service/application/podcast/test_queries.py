@@ -3,10 +3,9 @@ from uuid import uuid4
 import pytest
 
 from fakes import InMemoryUnitOfWork
-from podcast_service.application.podcast.queries import ExportPodcasts, GetPodcast, ListPodcasts
-from podcast_service.domain.podcast.entities import Podcast
-from podcast_service.domain.podcast.filters import PageRequest, PodcastFilters
-from podcast_service.domain.shared.exceptions import NotFoundError
+from podcast_service.application.podcast import ExportPodcasts, GetPodcast, ListPodcasts
+from podcast_service.domain.podcast import PageRequest, Podcast, PodcastFilters
+from podcast_service.domain.shared import NotFoundError
 
 
 async def test_list_returns_the_requested_page(

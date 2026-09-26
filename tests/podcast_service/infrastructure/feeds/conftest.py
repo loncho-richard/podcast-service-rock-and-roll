@@ -1,8 +1,8 @@
 import httpx
 import pytest
 
-from podcast_service.infrastructure.feeds.rss_reader import RssFeedReader
-from podcast_service.infrastructure.resilience import RetryPolicy
+from podcast_service.infrastructure import RetryPolicy
+from podcast_service.infrastructure.feeds import RssFeedReader
 
 
 @pytest.fixture

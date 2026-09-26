@@ -5,8 +5,8 @@ import io
 from collections.abc import AsyncIterable, AsyncIterator, Callable
 from enum import StrEnum
 
-from podcast_service.api.schemas.podcasts import PodcastResponse
-from podcast_service.domain.podcast.entities import Podcast
+from podcast_service.api.schemas import PodcastResponse
+from podcast_service.domain.podcast import Podcast
 
 _ROWS_PER_CHUNK = 200  # fewer, larger writes than one per row
 _LIST_SEPARATOR = "|"

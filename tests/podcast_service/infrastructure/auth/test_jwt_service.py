@@ -1,7 +1,7 @@
 import pytest
 
-from podcast_service.application.auth.errors import AuthenticationError
-from podcast_service.infrastructure.auth.jwt_service import JwtTokenService
+from podcast_service.application.auth import AuthenticationError
+from podcast_service.infrastructure.auth import JwtTokenService
 
 
 def test_issued_token_verifies_back_to_its_subject(token_service: JwtTokenService) -> None:

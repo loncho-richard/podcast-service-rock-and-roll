@@ -3,7 +3,7 @@ from alembic.migration import MigrationContext
 from sqlalchemy import Connection
 from sqlalchemy.ext.asyncio import AsyncEngine
 
-from podcast_service.infrastructure.persistence.models import Base
+from podcast_service.infrastructure.persistence import Base
 
 
 def _diff(connection: Connection) -> list[object]:

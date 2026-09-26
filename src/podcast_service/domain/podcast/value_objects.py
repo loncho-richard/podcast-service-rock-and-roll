@@ -1,7 +1,7 @@
 import re
 from dataclasses import dataclass
 
-from podcast_service.domain.shared.exceptions import InvalidValueError
+from podcast_service.domain.shared import InvalidValueError
 
 _HEX_COLOR = re.compile(r"^#[0-9a-f]{6}$")
 

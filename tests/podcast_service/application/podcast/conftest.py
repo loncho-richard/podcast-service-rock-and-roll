@@ -2,8 +2,8 @@ import pytest
 
 from factories import build_catalog
 from fakes import InMemoryPodcastRepository, InMemoryUnitOfWork
-from podcast_service.application.podcast.queries import ExportPodcasts, GetPodcast, ListPodcasts
-from podcast_service.domain.podcast.entities import Podcast
+from podcast_service.application.podcast import ExportPodcasts, GetPodcast, ListPodcasts
+from podcast_service.domain.podcast import Podcast
 
 
 @pytest.fixture

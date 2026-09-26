@@ -1,14 +1,9 @@
 import pytest
 
 from fakes import COVER_PALETTE, FakePodcastSource, InMemoryPodcastRepository, InMemoryUnitOfWork
-from podcast_service.application.ingestion.bulk_ingest import BulkIngestPodcasts
-from podcast_service.domain.ingestion.summary import (
-    IngestionSummary,
-    SkippedRecord,
-    SkipReason,
-    SourceMode,
-)
-from podcast_service.domain.podcast.value_objects import ExternalRef
+from podcast_service.application.ingestion import BulkIngestPodcasts
+from podcast_service.domain.ingestion import IngestionSummary, SkippedRecord, SkipReason, SourceMode
+from podcast_service.domain.podcast import ExternalRef
 
 EXPECTED_SKIPPED = (
     SkippedRecord(SkipReason.NOT_ROCK_RELATED, "1003", "Jazz Standards"),

@@ -3,9 +3,9 @@ from typing import Annotated
 from pydantic import BaseModel, Field, StringConstraints
 
 from podcast_service.api.schemas.podcasts import PodcastResponse
-from podcast_service.application.ingestion.single_ingest import SingleIngestionResult
-from podcast_service.domain.ingestion.summary import IngestionSummary, SkipReason, SourceMode
-from podcast_service.domain.podcast.repository import UpsertOutcome
+from podcast_service.application.ingestion import SingleIngestionResult
+from podcast_service.domain.ingestion import IngestionSummary, SkipReason, SourceMode
+from podcast_service.domain.podcast import UpsertOutcome
 
 SearchTerm = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=100)]
 

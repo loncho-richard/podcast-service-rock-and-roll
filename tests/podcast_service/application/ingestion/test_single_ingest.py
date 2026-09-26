@@ -1,10 +1,10 @@
 import pytest
 
 from fakes import UNAVAILABLE_ID
-from podcast_service.application.ingestion.single_ingest import IngestSinglePodcast
-from podcast_service.domain.ingestion.errors import PodcastRejectedError, SourceUnavailableError
-from podcast_service.domain.podcast.repository import UpsertOutcome
-from podcast_service.domain.shared.exceptions import DomainError, NotFoundError
+from podcast_service.application.ingestion import IngestSinglePodcast
+from podcast_service.domain.ingestion import PodcastRejectedError, SourceUnavailableError
+from podcast_service.domain.podcast import UpsertOutcome
+from podcast_service.domain.shared import DomainError, NotFoundError
 
 
 async def test_new_podcast_is_created_and_enriched(ingest_single: IngestSinglePodcast) -> None:

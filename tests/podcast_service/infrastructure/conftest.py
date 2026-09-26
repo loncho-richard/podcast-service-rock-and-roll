@@ -3,7 +3,7 @@ from collections.abc import AsyncIterator, Callable
 import httpx
 import pytest
 
-from podcast_service.infrastructure.resilience import RetryPolicy
+from podcast_service.infrastructure import RetryPolicy
 
 
 @pytest.fixture

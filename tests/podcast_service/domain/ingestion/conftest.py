@@ -3,11 +3,12 @@ from datetime import UTC, datetime
 import pytest
 
 from factories import RawPodcastRecordFactory
-from podcast_service.domain.ingestion.normalizer import PodcastNormalizer
-from podcast_service.domain.ingestion.raw import RawPodcastRecord
-from podcast_service.domain.ingestion.relevance import RockRelevancePolicy
-from podcast_service.domain.podcast.entities import Podcast
-from podcast_service.domain.podcast.value_objects import ExternalRef
+from podcast_service.domain.ingestion import (
+    PodcastNormalizer,
+    RawPodcastRecord,
+    RockRelevancePolicy,
+)
+from podcast_service.domain.podcast import ExternalRef, Podcast
 
 
 @pytest.fixture

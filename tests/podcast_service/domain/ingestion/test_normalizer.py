@@ -4,11 +4,14 @@ from typing import Any
 import pytest
 
 from factories import RawPodcastRecordFactory
-from podcast_service.domain.ingestion.normalizer import PodcastNormalizer
-from podcast_service.domain.ingestion.ports import FeedDetails
-from podcast_service.domain.ingestion.raw import RawPodcastRecord
-from podcast_service.domain.ingestion.summary import SkippedRecord, SkipReason
-from podcast_service.domain.podcast.entities import Podcast
+from podcast_service.domain.ingestion import (
+    FeedDetails,
+    PodcastNormalizer,
+    RawPodcastRecord,
+    SkippedRecord,
+    SkipReason,
+)
+from podcast_service.domain.podcast import Podcast
 
 
 def test_valid_record_becomes_a_clean_podcast(

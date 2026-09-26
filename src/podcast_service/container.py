@@ -1,29 +1,26 @@
 import httpx
 from dependency_injector import containers, providers
 
-from podcast_service.application.auth.issue_token import IssueAccessToken
-from podcast_service.application.ingestion.bulk_ingest import BulkIngestPodcasts
-from podcast_service.application.ingestion.enrichment import PodcastEnricher
-from podcast_service.application.ingestion.single_ingest import IngestSinglePodcast
-from podcast_service.application.podcast.queries import ExportPodcasts, GetPodcast, ListPodcasts
-from podcast_service.config import Settings
-from podcast_service.domain.ingestion.normalizer import PodcastNormalizer
-from podcast_service.domain.ingestion.relevance import RockRelevancePolicy
-from podcast_service.infrastructure.auth.jwt_service import JwtTokenService
-from podcast_service.infrastructure.feeds.rss_reader import RssFeedReader
-from podcast_service.infrastructure.imaging.http_image_fetcher import HttpImageFetcher
-from podcast_service.infrastructure.imaging.pillow_palette_extractor import (
-    PillowPaletteExtractor,
+from podcast_service.application.auth import IssueAccessToken
+from podcast_service.application.ingestion import (
+    BulkIngestPodcasts,
+    IngestSinglePodcast,
+    PodcastEnricher,
 )
-from podcast_service.infrastructure.persistence.database import (
+from podcast_service.application.podcast import ExportPodcasts, GetPodcast, ListPodcasts
+from podcast_service.config import Settings
+from podcast_service.domain.ingestion import PodcastNormalizer, RockRelevancePolicy
+from podcast_service.infrastructure import RetryPolicy
+from podcast_service.infrastructure.auth import JwtTokenService
+from podcast_service.infrastructure.feeds import RssFeedReader
+from podcast_service.infrastructure.imaging import HttpImageFetcher, PillowPaletteExtractor
+from podcast_service.infrastructure.persistence import (
     DatabaseHealthProbe,
+    SqlAlchemyUnitOfWork,
     create_engine,
     create_session_factory,
 )
-from podcast_service.infrastructure.persistence.unit_of_work import SqlAlchemyUnitOfWork
-from podcast_service.infrastructure.resilience import RetryPolicy
-from podcast_service.infrastructure.sources.itunes.client import ITunesPodcastSource
-from podcast_service.infrastructure.sources.itunes.fallback import ITunesSampleFallback
+from podcast_service.infrastructure.sources.itunes import ITunesPodcastSource, ITunesSampleFallback
 
 
 class Container(containers.DeclarativeContainer):

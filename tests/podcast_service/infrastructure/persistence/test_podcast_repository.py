@@ -3,12 +3,8 @@ from uuid import uuid4
 
 import pytest
 
-from podcast_service.domain.podcast.entities import Podcast
-from podcast_service.domain.podcast.filters import PageRequest, PodcastFilters
-from podcast_service.domain.podcast.repository import UpsertOutcome
-from podcast_service.infrastructure.persistence.podcast_repository import (
-    SqlAlchemyPodcastRepository,
-)
+from podcast_service.domain.podcast import PageRequest, Podcast, PodcastFilters, UpsertOutcome
+from podcast_service.infrastructure.persistence import SqlAlchemyPodcastRepository
 
 
 async def test_upsert_creates_and_round_trips_every_field(

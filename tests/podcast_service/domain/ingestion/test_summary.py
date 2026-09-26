@@ -1,9 +1,4 @@
-from podcast_service.domain.ingestion.summary import (
-    IngestionSummary,
-    SkippedRecord,
-    SkipReason,
-    SourceMode,
-)
+from podcast_service.domain.ingestion import IngestionSummary, SkippedRecord, SkipReason, SourceMode
 
 
 def test_stored_and_skipped_totals_are_derived() -> None:

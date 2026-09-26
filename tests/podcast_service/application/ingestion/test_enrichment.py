@@ -13,7 +13,7 @@ from fakes import (
     UNDECODABLE_COVER_URL,
     FakeFeedReader,
 )
-from podcast_service.application.ingestion.enrichment import EnrichmentResult, PodcastEnricher
+from podcast_service.application.ingestion import EnrichmentResult, PodcastEnricher
 
 
 async def test_feed_details_and_palette_are_added(enricher: PodcastEnricher) -> None:

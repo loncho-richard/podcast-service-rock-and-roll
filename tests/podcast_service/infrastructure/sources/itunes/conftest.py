@@ -5,9 +5,8 @@ import httpx
 import pytest
 
 from factories import build_itunes_response, build_itunes_result
-from podcast_service.infrastructure.resilience import RetryPolicy
-from podcast_service.infrastructure.sources.itunes.client import ITunesPodcastSource
-from podcast_service.infrastructure.sources.itunes.fallback import ITunesSampleFallback
+from podcast_service.infrastructure import RetryPolicy
+from podcast_service.infrastructure.sources.itunes import ITunesPodcastSource, ITunesSampleFallback
 
 ITUNES_BASE_URL = "https://itunes.test"
 

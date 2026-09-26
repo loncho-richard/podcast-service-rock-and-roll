@@ -9,22 +9,28 @@ from typing import Self
 from uuid import UUID, uuid4
 
 from factories import RawPodcastRecordFactory
-from podcast_service.application.unit_of_work import UnitOfWork
-from podcast_service.domain.ingestion.errors import SourceUnavailableError
-from podcast_service.domain.ingestion.ports import (
+from podcast_service.application import UnitOfWork
+from podcast_service.domain.ingestion import (
     FeedDetails,
     FeedReader,
     ImageFetcher,
     PaletteExtractor,
     PodcastSource,
+    RawPodcastRecord,
     SourceBatch,
+    SourceMode,
+    SourceUnavailableError,
 )
-from podcast_service.domain.ingestion.raw import RawPodcastRecord
-from podcast_service.domain.ingestion.summary import SourceMode
-from podcast_service.domain.podcast.entities import Podcast
-from podcast_service.domain.podcast.filters import Page, PageRequest, PodcastFilters
-from podcast_service.domain.podcast.repository import PodcastRepository, UpsertOutcome
-from podcast_service.domain.podcast.value_objects import ColorPalette, ExternalRef
+from podcast_service.domain.podcast import (
+    ColorPalette,
+    ExternalRef,
+    Page,
+    PageRequest,
+    Podcast,
+    PodcastFilters,
+    PodcastRepository,
+    UpsertOutcome,
+)
 
 FEED_URL = "https://feeds.example.com/classic-rock.xml"
 COVER_URL = "https://images.example.com/classic-rock.jpg"

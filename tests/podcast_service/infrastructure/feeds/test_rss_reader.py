@@ -4,8 +4,8 @@ import httpx
 import pytest
 import respx
 
-from podcast_service.domain.ingestion.ports import FeedDetails
-from podcast_service.infrastructure.feeds.rss_reader import RssFeedReader
+from podcast_service.domain.ingestion import FeedDetails
+from podcast_service.infrastructure.feeds import RssFeedReader
 
 FEED_URL = "https://feeds.test/rock.xml"
 

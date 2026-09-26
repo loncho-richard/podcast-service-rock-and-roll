@@ -3,10 +3,13 @@ import logging
 from collections.abc import Sequence
 from dataclasses import dataclass, replace
 
-from podcast_service.domain.ingestion.normalizer import PodcastNormalizer
-from podcast_service.domain.ingestion.ports import FeedReader, ImageFetcher, PaletteExtractor
-from podcast_service.domain.podcast.entities import Podcast
-from podcast_service.domain.podcast.value_objects import ColorPalette
+from podcast_service.domain.ingestion import (
+    FeedReader,
+    ImageFetcher,
+    PaletteExtractor,
+    PodcastNormalizer,
+)
+from podcast_service.domain.podcast import ColorPalette, Podcast
 
 logger = logging.getLogger(__name__)
 

@@ -4,9 +4,9 @@ from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 
-from podcast_service.api.errors import COMMON_ERRORS
-from podcast_service.api.schemas.auth import TokenResponse
-from podcast_service.application.auth.issue_token import IssueAccessToken
+from podcast_service.api import COMMON_ERRORS
+from podcast_service.api.schemas import TokenResponse
+from podcast_service.application.auth import IssueAccessToken
 from podcast_service.container import Container
 
 router = APIRouter(prefix="/auth", tags=["auth"])

@@ -1,6 +1,6 @@
 import pytest
 
-from podcast_service.domain.ingestion.relevance import RockRelevancePolicy
+from podcast_service.domain.ingestion import RockRelevancePolicy
 
 
 @pytest.mark.parametrize(

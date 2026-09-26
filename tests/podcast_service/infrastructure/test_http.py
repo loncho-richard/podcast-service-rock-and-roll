@@ -4,8 +4,7 @@ import httpx
 import pytest
 import respx
 
-from podcast_service.infrastructure.http import Download, download
-from podcast_service.infrastructure.resilience import RetryPolicy
+from podcast_service.infrastructure import Download, RetryPolicy, download
 
 URL = "https://files.test/cover.jpg"
 

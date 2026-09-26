@@ -4,11 +4,8 @@ import httpx
 import pytest
 from PIL import Image
 
-from podcast_service.infrastructure.imaging.http_image_fetcher import HttpImageFetcher
-from podcast_service.infrastructure.imaging.pillow_palette_extractor import (
-    PillowPaletteExtractor,
-)
-from podcast_service.infrastructure.resilience import RetryPolicy
+from podcast_service.infrastructure import RetryPolicy
+from podcast_service.infrastructure.imaging import HttpImageFetcher, PillowPaletteExtractor
 
 
 def _encode(image: Image.Image, image_format: str) -> bytes:

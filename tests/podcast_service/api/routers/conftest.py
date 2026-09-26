@@ -2,9 +2,8 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from factories import build_catalog
-from podcast_service.domain.podcast.entities import Podcast
-from podcast_service.infrastructure.persistence.database import create_session_factory
-from podcast_service.infrastructure.persistence.unit_of_work import SqlAlchemyUnitOfWork
+from podcast_service.domain.podcast import Podcast
+from podcast_service.infrastructure.persistence import SqlAlchemyUnitOfWork, create_session_factory
 
 
 @pytest.fixture

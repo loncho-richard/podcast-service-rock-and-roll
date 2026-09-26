@@ -21,13 +21,11 @@ from fakes import (
     upstream_records,
 )
 from podcast_service.api.app import create_app
-from podcast_service.application.ingestion.enrichment import PodcastEnricher
+from podcast_service.application.ingestion import PodcastEnricher
 from podcast_service.config import Settings
 from podcast_service.container import Container
-from podcast_service.domain.ingestion.normalizer import PodcastNormalizer
-from podcast_service.domain.ingestion.ports import FeedDetails
-from podcast_service.domain.ingestion.relevance import RockRelevancePolicy
-from podcast_service.infrastructure.persistence.database import create_engine
+from podcast_service.domain.ingestion import FeedDetails, PodcastNormalizer, RockRelevancePolicy
+from podcast_service.infrastructure.persistence import create_engine
 
 _ALEMBIC_INI = Path(__file__).parents[1] / "alembic.ini"
 _UNREACHABLE_DATABASE_URL = "postgresql+asyncpg://nobody:nothing@127.0.0.1:1/nothing"

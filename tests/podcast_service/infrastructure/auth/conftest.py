@@ -3,7 +3,7 @@ from datetime import UTC, datetime, timedelta
 import pytest
 
 from podcast_service.config import Settings
-from podcast_service.infrastructure.auth.jwt_service import JwtTokenService
+from podcast_service.infrastructure.auth import JwtTokenService
 
 
 @pytest.fixture

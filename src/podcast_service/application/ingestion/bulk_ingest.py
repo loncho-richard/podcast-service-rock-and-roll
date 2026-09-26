@@ -2,12 +2,10 @@ import logging
 from collections import Counter
 from collections.abc import Callable, Sequence
 
+from podcast_service.application import UnitOfWork
 from podcast_service.application.ingestion.enrichment import PodcastEnricher
-from podcast_service.application.unit_of_work import UnitOfWork
-from podcast_service.domain.ingestion.normalizer import PodcastNormalizer
-from podcast_service.domain.ingestion.ports import PodcastSource
-from podcast_service.domain.ingestion.summary import IngestionSummary
-from podcast_service.domain.podcast.repository import UpsertOutcome
+from podcast_service.domain.ingestion import IngestionSummary, PodcastNormalizer, PodcastSource
+from podcast_service.domain.podcast import UpsertOutcome
 
 logger = logging.getLogger(__name__)
 

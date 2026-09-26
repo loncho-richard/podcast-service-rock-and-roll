@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from types import TracebackType
 from typing import Self
 
-from podcast_service.domain.podcast.repository import PodcastRepository
+from podcast_service.domain.podcast import PodcastRepository
 
 
 class UnitOfWork(ABC):

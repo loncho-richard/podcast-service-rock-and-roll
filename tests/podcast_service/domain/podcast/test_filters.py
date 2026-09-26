@@ -1,6 +1,6 @@
 import pytest
 
-from podcast_service.domain.podcast.filters import PageRequest
+from podcast_service.domain.podcast import PageRequest
 
 
 @pytest.mark.parametrize(

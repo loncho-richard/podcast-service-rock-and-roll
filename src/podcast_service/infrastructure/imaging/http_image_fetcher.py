@@ -2,9 +2,8 @@ import logging
 
 import httpx
 
-from podcast_service.domain.ingestion.ports import ImageFetcher
-from podcast_service.infrastructure.http import download
-from podcast_service.infrastructure.resilience import RetryPolicy
+from podcast_service.domain.ingestion import ImageFetcher
+from podcast_service.infrastructure import RetryPolicy, download
 
 logger = logging.getLogger(__name__)
 

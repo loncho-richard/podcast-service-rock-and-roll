@@ -6,7 +6,7 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from podcast_service.config import DatabaseSettings
-from podcast_service.infrastructure.persistence.models import Base
+from podcast_service.infrastructure.persistence import Base
 
 config = context.config
 if config.config_file_name is not None and config.attributes.get("configure_logger", True):

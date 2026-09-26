@@ -5,7 +5,7 @@ import pytest
 import respx
 from tenacity import AsyncRetrying, RetryCallState
 
-from podcast_service.infrastructure.resilience import RetryPolicy, get_with_retry, is_transient
+from podcast_service.infrastructure import RetryPolicy, get_with_retry, is_transient
 
 URL = "https://service.test/resource"
 

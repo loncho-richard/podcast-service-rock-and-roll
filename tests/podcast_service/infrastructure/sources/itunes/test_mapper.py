@@ -1,5 +1,5 @@
 from factories import build_itunes_result
-from podcast_service.domain.ingestion.raw import RawPodcastRecord
+from podcast_service.domain.ingestion import RawPodcastRecord
 from podcast_service.infrastructure.sources.itunes.mapper import map_result
 
 

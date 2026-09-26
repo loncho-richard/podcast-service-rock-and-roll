@@ -1,15 +1,16 @@
 from collections.abc import Callable
 from dataclasses import dataclass
 
+from podcast_service.application import UnitOfWork
 from podcast_service.application.ingestion.enrichment import PodcastEnricher
-from podcast_service.application.unit_of_work import UnitOfWork
-from podcast_service.domain.ingestion.errors import PodcastRejectedError
-from podcast_service.domain.ingestion.normalizer import PodcastNormalizer
-from podcast_service.domain.ingestion.ports import PodcastSource
-from podcast_service.domain.ingestion.summary import SkippedRecord
-from podcast_service.domain.podcast.entities import Podcast
-from podcast_service.domain.podcast.repository import UpsertOutcome
-from podcast_service.domain.shared.exceptions import NotFoundError
+from podcast_service.domain.ingestion import (
+    PodcastNormalizer,
+    PodcastRejectedError,
+    PodcastSource,
+    SkippedRecord,
+)
+from podcast_service.domain.podcast import Podcast, UpsertOutcome
+from podcast_service.domain.shared import NotFoundError
 
 
 @dataclass(frozen=True, slots=True)

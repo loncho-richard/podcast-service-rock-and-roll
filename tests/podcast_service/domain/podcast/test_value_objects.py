@@ -1,7 +1,7 @@
 import pytest
 
-from podcast_service.domain.podcast.value_objects import ColorPalette, ExternalRef, HexColor
-from podcast_service.domain.shared.exceptions import InvalidValueError
+from podcast_service.domain.podcast import ColorPalette, ExternalRef, HexColor
+from podcast_service.domain.shared import InvalidValueError
 
 
 def test_hex_color_is_normalized_to_lowercase() -> None:

@@ -3,7 +3,7 @@ from typing import Self
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from podcast_service.application.unit_of_work import UnitOfWork
+from podcast_service.application import UnitOfWork
 from podcast_service.infrastructure.persistence.podcast_repository import (
     SqlAlchemyPodcastRepository,
 )

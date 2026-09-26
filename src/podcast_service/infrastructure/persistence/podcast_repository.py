@@ -17,10 +17,16 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from podcast_service.domain.podcast.entities import Podcast
-from podcast_service.domain.podcast.filters import Page, PageRequest, PodcastFilters
-from podcast_service.domain.podcast.repository import PodcastRepository, UpsertOutcome
-from podcast_service.domain.podcast.value_objects import ColorPalette, ExternalRef
+from podcast_service.domain.podcast import (
+    ColorPalette,
+    ExternalRef,
+    Page,
+    PageRequest,
+    Podcast,
+    PodcastFilters,
+    PodcastRepository,
+    UpsertOutcome,
+)
 from podcast_service.infrastructure.persistence.models import PodcastModel
 
 _TABLE = cast(Table, PodcastModel.__table__)

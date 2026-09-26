@@ -10,7 +10,7 @@ from dataclasses import dataclass
 
 from podcast_service.domain.ingestion.raw import RawPodcastRecord
 from podcast_service.domain.ingestion.summary import SourceMode
-from podcast_service.domain.podcast.value_objects import ColorPalette
+from podcast_service.domain.podcast import ColorPalette
 
 
 @dataclass(frozen=True, slots=True)

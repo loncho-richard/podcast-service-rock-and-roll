@@ -3,9 +3,9 @@ from http import HTTPStatus
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends, Response
 
-from podcast_service.api.schemas.health import HealthResponse
+from podcast_service.api.schemas import HealthResponse
 from podcast_service.container import Container
-from podcast_service.infrastructure.persistence.database import DatabaseHealthProbe
+from podcast_service.infrastructure.persistence import DatabaseHealthProbe
 
 router = APIRouter(tags=["health"])
 

@@ -1,7 +1,6 @@
 import pytest
 
-from podcast_service.application.auth.issue_token import IssueAccessToken
-from podcast_service.application.auth.ports import AccessToken, TokenService
+from podcast_service.application.auth import AccessToken, IssueAccessToken, TokenService
 
 
 class FakeTokenService(TokenService):

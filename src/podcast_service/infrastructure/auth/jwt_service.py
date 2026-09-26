@@ -3,8 +3,7 @@ from datetime import UTC, datetime, timedelta
 
 import jwt
 
-from podcast_service.application.auth.errors import AuthenticationError
-from podcast_service.application.auth.ports import AccessToken, TokenService
+from podcast_service.application.auth import AccessToken, AuthenticationError, TokenService
 
 # Pinned: the algorithm is never taken from the token header (prevents alg=none / confusion).
 _ALGORITHM = "HS256"

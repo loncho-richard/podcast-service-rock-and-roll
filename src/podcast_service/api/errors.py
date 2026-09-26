@@ -8,10 +8,10 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from podcast_service.api.schemas.errors import ErrorDetail, ErrorResponse
-from podcast_service.application.auth.errors import AuthenticationError
-from podcast_service.domain.ingestion.errors import PodcastRejectedError, SourceUnavailableError
-from podcast_service.domain.shared.exceptions import DomainError, NotFoundError
+from podcast_service.api.schemas import ErrorDetail, ErrorResponse
+from podcast_service.application.auth import AuthenticationError
+from podcast_service.domain.ingestion import PodcastRejectedError, SourceUnavailableError
+from podcast_service.domain.shared import DomainError, NotFoundError
 
 logger = logging.getLogger(__name__)
 

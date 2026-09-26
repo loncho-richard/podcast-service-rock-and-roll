@@ -11,8 +11,7 @@ from podcast_service.domain.ingestion.text import (
     normalize_language,
     parse_datetime,
 )
-from podcast_service.domain.podcast.entities import Podcast
-from podcast_service.domain.podcast.value_objects import ExternalRef
+from podcast_service.domain.podcast import ExternalRef, Podcast
 
 # iTunes tags every show with this catch-all genre; it carries no information.
 _GENERIC_GENRES = frozenset({"podcasts"})

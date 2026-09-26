@@ -1,9 +1,7 @@
 import pytest
 
-from podcast_service.domain.podcast.value_objects import ColorPalette
-from podcast_service.infrastructure.imaging.pillow_palette_extractor import (
-    PillowPaletteExtractor,
-)
+from podcast_service.domain.podcast import ColorPalette
+from podcast_service.infrastructure.imaging import PillowPaletteExtractor
 
 
 def test_palette_is_ordered_by_dominance(

@@ -1,4 +1,4 @@
-from podcast_service.domain.shared.exceptions import DomainError
+from podcast_service.domain.shared import DomainError
 
 
 class SourceUnavailableError(DomainError):

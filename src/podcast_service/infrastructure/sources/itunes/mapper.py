@@ -6,7 +6,7 @@ domain normalizer decides what is usable.
 
 from typing import Any
 
-from podcast_service.domain.ingestion.raw import RawPodcastRecord
+from podcast_service.domain.ingestion import RawPodcastRecord
 
 SOURCE_NAME = "itunes"
 

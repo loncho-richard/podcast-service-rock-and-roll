@@ -43,6 +43,11 @@ The code follows a light **Domain-Driven Design** layering. Dependencies point i
 | `infrastructure` | SQLAlchemy repository and unit of work, iTunes client and offline sample, RSS reader, image fetcher, Pillow palette extractor, PyJWT token service, retry policy | domain, application |
 | `api` | FastAPI routers, request/response schemas, error handlers, auth dependency, exporters | application |
 
+Each package declares its public API with `__all__`, and other packages import only
+through it, so a package's internal modules can be reorganized freely. An architecture
+test fails the build if a layer imports outward (e.g. `domain` importing
+`infrastructure`) or reaches into another package's modules.
+
 `container.py` (dependency-injector) is the composition root: the only place where a
 port gets its concrete implementation. Tests use the same container and override
 providers, for example to swap iTunes and the enricher for in-memory fakes.

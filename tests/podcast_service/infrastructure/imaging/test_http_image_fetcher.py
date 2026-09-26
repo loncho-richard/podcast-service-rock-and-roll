@@ -4,7 +4,7 @@ import httpx
 import pytest
 import respx
 
-from podcast_service.infrastructure.imaging.http_image_fetcher import HttpImageFetcher
+from podcast_service.infrastructure.imaging import HttpImageFetcher
 
 COVER_URL = "https://images.test/cover.png"
 

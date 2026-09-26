@@ -1,10 +1,9 @@
 from collections.abc import AsyncIterator, Callable
 from uuid import UUID
 
-from podcast_service.application.unit_of_work import UnitOfWork
-from podcast_service.domain.podcast.entities import Podcast
-from podcast_service.domain.podcast.filters import Page, PageRequest, PodcastFilters
-from podcast_service.domain.shared.exceptions import NotFoundError
+from podcast_service.application import UnitOfWork
+from podcast_service.domain.podcast import Page, PageRequest, Podcast, PodcastFilters
+from podcast_service.domain.shared import NotFoundError
 
 
 class ListPodcasts:

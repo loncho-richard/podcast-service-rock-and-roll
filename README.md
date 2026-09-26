@@ -161,3 +161,8 @@ src/podcast_service/
 migrations/        Alembic
 tests/             mirrors src/
 ```
+
+Each package exposes its public API in `__init__.py` (`__all__`). Code outside a package
+imports from the package (`from podcast_service.domain.podcast import Podcast`); modules
+inside it import their siblings directly. `tests/test_architecture.py` enforces this, and
+that dependencies only point inwards (`domain` ← `application` ← `infrastructure`).

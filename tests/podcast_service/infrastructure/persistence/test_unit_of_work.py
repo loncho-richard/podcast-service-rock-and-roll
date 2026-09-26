@@ -1,6 +1,5 @@
-from podcast_service.domain.podcast.entities import Podcast
-from podcast_service.domain.podcast.filters import PageRequest, PodcastFilters
-from podcast_service.infrastructure.persistence.unit_of_work import SqlAlchemyUnitOfWork
+from podcast_service.domain.podcast import PageRequest, Podcast, PodcastFilters
+from podcast_service.infrastructure.persistence import SqlAlchemyUnitOfWork
 
 
 async def _count(unit_of_work: SqlAlchemyUnitOfWork) -> int:

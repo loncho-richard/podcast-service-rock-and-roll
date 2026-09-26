@@ -7,12 +7,10 @@ from fastapi import Depends, FastAPI
 from httpx import ASGITransport, AsyncClient
 
 from factories import PodcastFactory
-from podcast_service.api.errors import register_exception_handlers
-from podcast_service.api.security import require_auth
+from podcast_service.api import register_exception_handlers, require_auth
 from podcast_service.container import Container
-from podcast_service.domain.podcast.entities import Podcast
-from podcast_service.domain.podcast.value_objects import ExternalRef
-from podcast_service.domain.shared.exceptions import DomainError, NotFoundError
+from podcast_service.domain.podcast import ExternalRef, Podcast
+from podcast_service.domain.shared import DomainError, NotFoundError
 
 
 @pytest.fixture

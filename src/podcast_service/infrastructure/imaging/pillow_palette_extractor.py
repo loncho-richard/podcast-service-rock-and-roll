@@ -3,8 +3,8 @@ from io import BytesIO
 
 from PIL import Image
 
-from podcast_service.domain.ingestion.ports import PaletteExtractor
-from podcast_service.domain.podcast.value_objects import ColorPalette, HexColor
+from podcast_service.domain.ingestion import PaletteExtractor
+from podcast_service.domain.podcast import ColorPalette, HexColor
 
 logger = logging.getLogger(__name__)
 

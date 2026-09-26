@@ -4,17 +4,15 @@ from typing import Annotated
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Body, Depends, Path, Response
 
-from podcast_service.api.errors import COMMON_ERRORS, error_responses
-from podcast_service.api.schemas.ingestion import (
+from podcast_service.api import COMMON_ERRORS, error_responses, require_auth
+from podcast_service.api.schemas import (
     BulkIngestionRequest,
     IngestionSummaryResponse,
     SingleIngestionResponse,
 )
-from podcast_service.api.security import require_auth
-from podcast_service.application.ingestion.bulk_ingest import BulkIngestPodcasts
-from podcast_service.application.ingestion.single_ingest import IngestSinglePodcast
+from podcast_service.application.ingestion import BulkIngestPodcasts, IngestSinglePodcast
 from podcast_service.container import Container
-from podcast_service.domain.podcast.repository import UpsertOutcome
+from podcast_service.domain.podcast import UpsertOutcome
 
 router = APIRouter(
     prefix="/ingestion",

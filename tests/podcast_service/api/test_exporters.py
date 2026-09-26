@@ -4,8 +4,8 @@ import pytest
 from syrupy.assertion import SnapshotAssertion
 
 from fakes import as_stream
-from podcast_service.api.exporters import CSV_COLUMNS, ExportFormat, export_stream
-from podcast_service.domain.podcast.entities import Podcast
+from podcast_service.api import CSV_COLUMNS, ExportFormat, export_stream
+from podcast_service.domain.podcast import Podcast
 
 
 @pytest.mark.parametrize("export_format", list(ExportFormat))

@@ -1,11 +1,12 @@
 import pytest
 
 from fakes import FakePodcastSource, InMemoryPodcastRepository, InMemoryUnitOfWork, upstream_records
-from podcast_service.application.ingestion.bulk_ingest import BulkIngestPodcasts
-from podcast_service.application.ingestion.enrichment import PodcastEnricher
-from podcast_service.application.ingestion.single_ingest import IngestSinglePodcast
-from podcast_service.domain.ingestion.normalizer import PodcastNormalizer
-from podcast_service.domain.ingestion.summary import SourceMode
+from podcast_service.application.ingestion import (
+    BulkIngestPodcasts,
+    IngestSinglePodcast,
+    PodcastEnricher,
+)
+from podcast_service.domain.ingestion import PodcastNormalizer, SourceMode
 
 
 @pytest.fixture

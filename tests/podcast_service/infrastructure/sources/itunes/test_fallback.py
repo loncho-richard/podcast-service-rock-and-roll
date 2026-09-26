@@ -1,4 +1,4 @@
-from podcast_service.infrastructure.sources.itunes.fallback import ITunesSampleFallback
+from podcast_service.infrastructure.sources.itunes import ITunesSampleFallback
 from podcast_service.infrastructure.sources.itunes.mapper import result_id
 
 

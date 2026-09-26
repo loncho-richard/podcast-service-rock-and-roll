@@ -1,8 +1,6 @@
 import pytest
 
-from podcast_service.application.auth.errors import AuthenticationError
-from podcast_service.application.auth.issue_token import IssueAccessToken
-from podcast_service.application.auth.ports import AccessToken
+from podcast_service.application.auth import AccessToken, AuthenticationError, IssueAccessToken
 
 
 def test_valid_credentials_get_a_token(issue_access_token: IssueAccessToken) -> None:

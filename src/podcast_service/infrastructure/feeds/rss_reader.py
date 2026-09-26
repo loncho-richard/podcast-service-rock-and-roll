@@ -5,9 +5,8 @@ from typing import Any
 import feedparser
 import httpx
 
-from podcast_service.domain.ingestion.ports import FeedDetails, FeedReader
-from podcast_service.infrastructure.http import download
-from podcast_service.infrastructure.resilience import RetryPolicy
+from podcast_service.domain.ingestion import FeedDetails, FeedReader
+from podcast_service.infrastructure import RetryPolicy, download
 
 logger = logging.getLogger(__name__)
 

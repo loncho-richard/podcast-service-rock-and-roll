@@ -9,7 +9,7 @@ from httpx import AsyncClient
 from syrupy.assertion import SnapshotAssertion
 from syrupy.filters import props
 
-from podcast_service.domain.podcast.entities import Podcast
+from podcast_service.domain.podcast import Podcast
 
 pytestmark = pytest.mark.usefixtures("live_database")
 

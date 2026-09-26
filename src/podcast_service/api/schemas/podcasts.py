@@ -4,8 +4,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from podcast_service.domain.podcast.entities import Podcast
-from podcast_service.domain.podcast.filters import Page
+from podcast_service.domain.podcast import Page, Podcast
 
 
 class PodcastResponse(BaseModel):
