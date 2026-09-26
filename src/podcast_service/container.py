@@ -2,7 +2,9 @@ import httpx
 from dependency_injector import containers, providers
 
 from podcast_service.application.auth.issue_token import IssueAccessToken
+from podcast_service.application.ingestion.bulk_ingest import BulkIngestPodcasts
 from podcast_service.application.ingestion.enrichment import PodcastEnricher
+from podcast_service.application.ingestion.single_ingest import IngestSinglePodcast
 from podcast_service.config import Settings
 from podcast_service.domain.ingestion.normalizer import PodcastNormalizer
 from podcast_service.domain.ingestion.relevance import RockRelevancePolicy
@@ -104,4 +106,20 @@ class Container(containers.DeclarativeContainer):
         ),
         normalizer=normalizer,
         max_concurrency=settings.provided.enrichment_concurrency,
+    )
+
+    bulk_ingest = providers.Factory(
+        BulkIngestPodcasts,
+        source=podcast_source,
+        normalizer=normalizer,
+        enricher=enricher,
+        uow_factory=unit_of_work.provider,
+        default_terms=settings.provided.itunes_search_terms,
+    )
+    ingest_single = providers.Factory(
+        IngestSinglePodcast,
+        source=podcast_source,
+        normalizer=normalizer,
+        enricher=enricher,
+        uow_factory=unit_of_work.provider,
     )

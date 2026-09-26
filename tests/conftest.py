@@ -12,9 +12,21 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine
 from testcontainers.community.postgres import PostgresContainer
 
+from fakes import (
+    FEED_URL,
+    FakeFeedReader,
+    FakeImageFetcher,
+    FakePaletteExtractor,
+    FakePodcastSource,
+    upstream_records,
+)
 from podcast_service.api.app import create_app
+from podcast_service.application.ingestion.enrichment import PodcastEnricher
 from podcast_service.config import Settings
 from podcast_service.container import Container
+from podcast_service.domain.ingestion.normalizer import PodcastNormalizer
+from podcast_service.domain.ingestion.ports import FeedDetails
+from podcast_service.domain.ingestion.relevance import RockRelevancePolicy
 from podcast_service.infrastructure.persistence.database import create_engine
 
 _ALEMBIC_INI = Path(__file__).parents[1] / "alembic.ini"
@@ -92,6 +104,47 @@ def forged_tokens(settings: Settings) -> dict[str, str]:
         "alg-none": jwt.encode(claims, None, algorithm="none"),
         "garbage": "not-a-jwt",
     }
+
+
+# --- ingestion fakes (no network) ---------------------------------------------
+
+
+@pytest.fixture
+def normalizer() -> PodcastNormalizer:
+    return PodcastNormalizer(RockRelevancePolicy())
+
+
+@pytest.fixture
+def feed_reader() -> FakeFeedReader:
+    return FakeFeedReader(
+        {FEED_URL: FeedDetails(description="<p>From the <b>feed</b></p>", language="en-gb")}
+    )
+
+
+@pytest.fixture
+def enricher(feed_reader: FakeFeedReader, normalizer: PodcastNormalizer) -> PodcastEnricher:
+    return PodcastEnricher(
+        feed_reader=feed_reader,
+        image_fetcher=FakeImageFetcher(),
+        palette_extractor=FakePaletteExtractor(),
+        normalizer=normalizer,
+        max_concurrency=3,
+    )
+
+
+@pytest.fixture
+def fake_source() -> FakePodcastSource:
+    return FakePodcastSource(upstream_records())
+
+
+@pytest.fixture
+def fake_upstream(
+    container: Container, fake_source: FakePodcastSource, enricher: PodcastEnricher
+) -> FakePodcastSource:
+    """Replace iTunes, RSS feeds and cover downloads with in-memory fakes."""
+    container.podcast_source.override(fake_source)
+    container.enricher.override(enricher)
+    return fake_source
 
 
 # --- database (Docker via testcontainers) -------------------------------------

@@ -10,7 +10,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from podcast_service.api.schemas.errors import ErrorDetail, ErrorResponse
 from podcast_service.application.auth.errors import AuthenticationError
-from podcast_service.domain.ingestion.errors import SourceUnavailableError
+from podcast_service.domain.ingestion.errors import PodcastRejectedError, SourceUnavailableError
 from podcast_service.domain.shared.exceptions import DomainError, NotFoundError
 
 logger = logging.getLogger(__name__)
@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 _DOMAIN_STATUS: dict[type[DomainError], int] = {
     AuthenticationError: HTTPStatus.UNAUTHORIZED,
     NotFoundError: HTTPStatus.NOT_FOUND,
+    PodcastRejectedError: HTTPStatus.UNPROCESSABLE_ENTITY,
     SourceUnavailableError: HTTPStatus.SERVICE_UNAVAILABLE,
 }
 

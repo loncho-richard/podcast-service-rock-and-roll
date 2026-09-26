@@ -1,0 +1,229 @@
+# serializer version: 1
+# name: test_bulk_ingestion_rejects_invalid_requests[blank-term]
+  dict({
+    'body': dict({
+      'error': dict({
+        'code': 'validation_error',
+        'details': list([
+          dict({
+            'loc': list([
+              'body',
+              'terms',
+              0,
+            ]),
+            'msg': 'String should have at least 1 character',
+            'type': 'string_too_short',
+          }),
+        ]),
+        'message': 'Invalid request.',
+      }),
+    }),
+    'status_code': 422,
+  })
+# ---
+# name: test_bulk_ingestion_rejects_invalid_requests[limit-too-high]
+  dict({
+    'body': dict({
+      'error': dict({
+        'code': 'validation_error',
+        'details': list([
+          dict({
+            'loc': list([
+              'body',
+              'limit',
+            ]),
+            'msg': 'Input should be less than or equal to 200',
+            'type': 'less_than_equal',
+          }),
+        ]),
+        'message': 'Invalid request.',
+      }),
+    }),
+    'status_code': 422,
+  })
+# ---
+# name: test_bulk_ingestion_rejects_invalid_requests[limit-too-low]
+  dict({
+    'body': dict({
+      'error': dict({
+        'code': 'validation_error',
+        'details': list([
+          dict({
+            'loc': list([
+              'body',
+              'limit',
+            ]),
+            'msg': 'Input should be greater than or equal to 1',
+            'type': 'greater_than_equal',
+          }),
+        ]),
+        'message': 'Invalid request.',
+      }),
+    }),
+    'status_code': 422,
+  })
+# ---
+# name: test_bulk_ingestion_rejects_invalid_requests[no-terms]
+  dict({
+    'body': dict({
+      'error': dict({
+        'code': 'validation_error',
+        'details': list([
+          dict({
+            'loc': list([
+              'body',
+              'terms',
+            ]),
+            'msg': 'List should have at least 1 item after validation, not 0',
+            'type': 'too_short',
+          }),
+        ]),
+        'message': 'Invalid request.',
+      }),
+    }),
+    'status_code': 422,
+  })
+# ---
+# name: test_bulk_ingestion_rejects_invalid_requests[too-many-terms]
+  dict({
+    'body': dict({
+      'error': dict({
+        'code': 'validation_error',
+        'details': list([
+          dict({
+            'loc': list([
+              'body',
+              'terms',
+            ]),
+            'msg': 'List should have at most 20 items after validation, not 21',
+            'type': 'too_long',
+          }),
+        ]),
+        'message': 'Invalid request.',
+      }),
+    }),
+    'status_code': 422,
+  })
+# ---
+# name: test_bulk_ingestion_returns_a_summary
+  dict({
+    'body': dict({
+      'created': 2,
+      'fetched': 5,
+      'palette_failures': 1,
+      'skipped': 3,
+      'skipped_records': list([
+        dict({
+          'external_id': '1003',
+          'reason': 'not_rock_related',
+          'title': 'Jazz Standards',
+        }),
+        dict({
+          'external_id': '1004',
+          'reason': 'missing_title',
+          'title': None,
+        }),
+        dict({
+          'external_id': '1001',
+          'reason': 'duplicate_in_batch',
+          'title': 'Classic Rock Hour (mirror)',
+        }),
+      ]),
+      'source': 'live',
+      'stored': 2,
+      'unchanged': 0,
+      'updated': 0,
+    }),
+    'status_code': 200,
+  })
+# ---
+# name: test_single_ingestion_errors[invalid-id]
+  dict({
+    'body': dict({
+      'error': dict({
+        'code': 'validation_error',
+        'details': list([
+          dict({
+            'loc': list([
+              'path',
+              'itunes_id',
+            ]),
+            'msg': "String should match pattern '^\\d{1,20}$'",
+            'type': 'string_pattern_mismatch',
+          }),
+        ]),
+        'message': 'Invalid request.',
+      }),
+    }),
+    'status_code': 422,
+  })
+# ---
+# name: test_single_ingestion_errors[not-rock]
+  dict({
+    'body': dict({
+      'error': dict({
+        'code': 'podcast_rejected',
+        'details': None,
+        'message': 'Podcast 1003 was rejected: not_rock_related.',
+      }),
+    }),
+    'status_code': 422,
+  })
+# ---
+# name: test_single_ingestion_errors[source-down]
+  dict({
+    'body': dict({
+      'error': dict({
+        'code': 'source_unavailable',
+        'details': None,
+        'message': 'The podcast source is unavailable.',
+      }),
+    }),
+    'status_code': 503,
+  })
+# ---
+# name: test_single_ingestion_errors[unknown]
+  dict({
+    'body': dict({
+      'error': dict({
+        'code': 'not_found',
+        'details': None,
+        'message': 'Podcast 9999 was not found in the source.',
+      }),
+    }),
+    'status_code': 404,
+  })
+# ---
+# name: test_single_ingestion_returns_the_stored_podcast
+  dict({
+    'body': dict({
+      'outcome': 'created',
+      'palette_failed': False,
+      'podcast': dict({
+        'author': 'Rock Radio Network',
+        'country': 'USA',
+        'cover_image_url': 'https://images.example.com/classic-rock.jpg',
+        'description': 'From the feed',
+        'episode_count': 120,
+        'explicit': False,
+        'external_id': '1001',
+        'feed_url': 'https://feeds.example.com/classic-rock.xml',
+        'genres': list([
+          'Music',
+          'Music History',
+        ]),
+        'language': 'en-GB',
+        'palette': list([
+          '#111111',
+          '#eeeeee',
+        ]),
+        'primary_genre': 'Music',
+        'released_at': '2026-09-01T10:00:00Z',
+        'source': 'itunes',
+        'store_url': 'https://podcasts.apple.com/podcast/id1000',
+        'title': 'Classic Rock Hour',
+      }),
+    }),
+    'status_code': 201,
+  })
+# ---

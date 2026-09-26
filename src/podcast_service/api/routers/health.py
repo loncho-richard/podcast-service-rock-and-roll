@@ -22,5 +22,5 @@ async def health(
 ) -> HealthResponse:
     if await probe.is_healthy():
         return HealthResponse(status="ok", database="ok")
-    response.status_code = HTTPStatus.SERVICE_UNAVAILABLE
+    response.status_code = HTTPStatus.SERVICE_UNAVAILABLE.value
     return HealthResponse(status="degraded", database="unavailable")
