@@ -1,5 +1,7 @@
 # Rock & Roll Podcast Service
 
+[![CI](https://github.com/loncho-richard/podcast-service-rock-and-roll/actions/workflows/ci.yml/badge.svg)](https://github.com/loncho-richard/podcast-service-rock-and-roll/actions/workflows/ci.yml)
+
 A small REST API for a catalog of rock & roll podcasts. It ingests podcasts from the
 iTunes Search API, cleans them, enriches them with their RSS description/language and a
 color palette extracted from the cover art, stores them in PostgreSQL, and lets clients
@@ -143,6 +145,9 @@ Integration tests start their own PostgreSQL container with
 [testcontainers](https://testcontainers.com/) and run the real Alembic migrations; they
 never touch the Compose database. Nothing in the suite calls the real iTunes, feeds or
 images: HTTP is mocked with `respx` and the ingestion ports with in-memory fakes.
+
+The same checks run in GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml))
+on every push to `main` and every pull request.
 
 `tests/` mirrors `src/`: the tests for `src/podcast_service/x/y.py` live in
 `tests/podcast_service/x/test_y.py`, fixtures live only in `conftest.py` files, and

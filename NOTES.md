@@ -283,8 +283,10 @@ catalog grew.
   (`pg_trgm` similarity or full-text search).
 - **Observability:** structured JSON logs with request ids, and metrics (ingestion
   counts, upstream latency and errors).
-- **Nice-to-haves from the brief I left out on purpose:**
-  - A CI workflow that runs ruff, mypy and pytest.
+- **Nice-to-haves from the brief:** I built only the CI workflow
+  (`.github/workflows/ci.yml`: ruff, mypy and the full test suite, integration tests
+  included, on every push to `main` and every pull request). I left these out on
+  purpose, to keep the core small and solid:
   - Richer filtering (country, explicit, several genres).
   - Episode ingestion.
   - Rate limiting or caching of iTunes calls.
