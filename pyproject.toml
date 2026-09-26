@@ -1,0 +1,61 @@
+[project]
+name = "podcast-service"
+version = "0.1.0"
+description = "REST API for a catalog of rock & roll podcasts."
+authors = [
+    { name = "Carlos Richardson", email = "richardsoncarlosalberto@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "dependency-injector>=4.49.1",
+    "fastapi>=0.141.1",
+    "pydantic-settings>=2.15.0",
+    "uvicorn[standard]>=0.54.0",
+]
+
+[build-system]
+requires = ["uv_build>=0.12.18,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "mypy>=2.3.1",
+    "polyfactory>=3.3.0",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "ruff>=0.16.9",
+    "syrupy>=6.1.1",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "UP", "SIM", "RUF", "ASYNC", "PT", "N"]
+
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "fastapi.Path", "fastapi.Body"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+mypy_path = "src"
+packages = ["podcast_service"]
+
+[[tool.mypy.overrides]]
+module = ["dependency_injector.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
+addopts = "--strict-markers --import-mode=importlib"
+markers = [
+    "integration: tests that need a real PostgreSQL (Docker via testcontainers)",
+]
