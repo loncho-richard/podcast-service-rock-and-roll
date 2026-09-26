@@ -18,6 +18,7 @@ def create_app(container: Container | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         yield
+        await container.http_client().aclose()
         await container.engine().dispose()
 
     app = FastAPI(

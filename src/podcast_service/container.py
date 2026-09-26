@@ -1,3 +1,4 @@
+import httpx
 from dependency_injector import containers, providers
 
 from podcast_service.application.auth.issue_token import IssueAccessToken
@@ -9,6 +10,9 @@ from podcast_service.infrastructure.persistence.database import (
     create_session_factory,
 )
 from podcast_service.infrastructure.persistence.unit_of_work import SqlAlchemyUnitOfWork
+from podcast_service.infrastructure.resilience import RetryPolicy
+from podcast_service.infrastructure.sources.itunes.client import ITunesPodcastSource
+from podcast_service.infrastructure.sources.itunes.fallback import ITunesSampleFallback
 
 
 class Container(containers.DeclarativeContainer):
@@ -39,4 +43,27 @@ class Container(containers.DeclarativeContainer):
         client_id=settings.provided.auth_client_id,
         client_secret=settings.provided.auth_client_secret.get_secret_value.call(),
         token_service=token_service,
+    )
+
+    # --- outbound HTTP ---
+    http_client = providers.Singleton(
+        httpx.AsyncClient,
+        timeout=settings.provided.http_timeout_seconds,
+        follow_redirects=True,
+        headers={"User-Agent": "rock-podcast-service/0.1"},
+    )
+    retry_policy = providers.Singleton(
+        RetryPolicy,
+        attempts=settings.provided.http_retry_attempts,
+        max_delay=settings.provided.http_retry_max_delay_seconds,
+    )
+
+    # --- ingestion ---
+    podcast_source = providers.Singleton(
+        ITunesPodcastSource,
+        http_client=http_client,
+        base_url=settings.provided.itunes_base_url,
+        country=settings.provided.itunes_country,
+        retry_policy=retry_policy,
+        fallback=providers.Singleton(ITunesSampleFallback),
     )

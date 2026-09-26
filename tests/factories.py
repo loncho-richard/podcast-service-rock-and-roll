@@ -2,6 +2,7 @@
 
 from datetime import UTC, datetime
 from itertools import count
+from typing import Any
 
 from polyfactory import Use
 from polyfactory.factories import DataclassFactory
@@ -50,3 +51,31 @@ class PodcastFactory(DataclassFactory[Podcast]):
     id = None
     created_at = None
     updated_at = None
+
+
+def build_itunes_result(collection_id: int = 1001, **overrides: Any) -> dict[str, Any]:
+    """A podcast item shaped exactly like the iTunes Search/Lookup API returns it."""
+    return {
+        "wrapperType": "track",
+        "kind": "podcast",
+        "collectionId": collection_id,
+        "trackId": collection_id,
+        "artistName": "Rock Radio Network",
+        "collectionName": "Classic Rock Hour",
+        "trackName": "Classic Rock Hour",
+        "collectionViewUrl": f"https://podcasts.apple.com/us/podcast/id{collection_id}",
+        "feedUrl": "https://feeds.example.com/classic-rock.xml",
+        "artworkUrl100": "https://images.example.com/100x100bb.jpg",
+        "artworkUrl600": "https://images.example.com/600x600bb.jpg",
+        "releaseDate": "2026-09-01T10:00:00Z",
+        "collectionExplicitness": "notExplicit",
+        "trackCount": 120,
+        "country": "USA",
+        "primaryGenreName": "Music History",
+        "genres": ["Music History", "Podcasts", "Music"],
+        **overrides,
+    }
+
+
+def build_itunes_response(*results: dict[str, Any]) -> dict[str, Any]:
+    return {"resultCount": len(results), "results": list(results)}
