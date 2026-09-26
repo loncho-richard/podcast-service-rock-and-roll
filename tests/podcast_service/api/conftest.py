@@ -1,12 +1,17 @@
 from collections.abc import AsyncIterator
+from datetime import UTC, datetime
+from uuid import UUID
 
 import pytest
 from fastapi import Depends, FastAPI
 from httpx import ASGITransport, AsyncClient
 
+from factories import PodcastFactory
 from podcast_service.api.errors import register_exception_handlers
 from podcast_service.api.security import require_auth
 from podcast_service.container import Container
+from podcast_service.domain.podcast.entities import Podcast
+from podcast_service.domain.podcast.value_objects import ExternalRef
 from podcast_service.domain.shared.exceptions import DomainError, NotFoundError
 
 
@@ -61,3 +66,37 @@ async def protected_client(protected_client_app: FastAPI) -> AsyncIterator[Async
     transport = ASGITransport(app=protected_client_app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         yield client
+
+
+_STORED_AT = datetime(2026, 9, 26, 12, 0, tzinfo=UTC)
+
+
+def _stored(index: int, **overrides: object) -> Podcast:
+    """A podcast as it comes back from the repository, with deterministic identity."""
+    return PodcastFactory.build(
+        id=UUID(int=index),
+        ref=ExternalRef("itunes", str(index)),
+        created_at=_STORED_AT,
+        updated_at=_STORED_AT,
+        **overrides,
+    )
+
+
+@pytest.fixture
+def stored_podcasts() -> list[Podcast]:
+    return [
+        _stored(1),
+        _stored(
+            2,
+            title='=HYPERLINK("http://evil.test")',
+            author="-Spreadsheet, Injection",
+            description=None,
+            palette=None,
+            genres=("Music", "Rock, Punk"),
+        ),
+    ]
+
+
+@pytest.fixture
+def many_stored_podcasts() -> list[Podcast]:
+    return [_stored(index) for index in range(450)]

@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from podcast_service.api.errors import register_exception_handlers
-from podcast_service.api.routers import auth, health, ingestion
+from podcast_service.api.routers import auth, health, ingestion, podcasts
 from podcast_service.container import Container
 
 
@@ -32,4 +32,5 @@ def create_app(container: Container | None = None) -> FastAPI:
     app.include_router(health.router)
     app.include_router(auth.router)
     app.include_router(ingestion.router)
+    app.include_router(podcasts.router)
     return app

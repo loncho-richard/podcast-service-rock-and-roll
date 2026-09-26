@@ -79,3 +79,27 @@ def build_itunes_result(collection_id: int = 1001, **overrides: Any) -> dict[str
 
 def build_itunes_response(*results: dict[str, Any]) -> dict[str, Any]:
     return {"resultCount": len(results), "results": list(results)}
+
+
+def build_catalog() -> list[Podcast]:
+    """Four unsaved podcasts covering the search, genre and language filters."""
+    return [
+        PodcastFactory.build(
+            title="Classic Rock Hour",
+            author="Rock Radio",
+            genres=("Music", "Music History"),
+            language="en-US",
+        ),
+        PodcastFactory.build(
+            title="Punk Tapes", author="Garage Collective", genres=("Music",), language="en-GB"
+        ),
+        PodcastFactory.build(
+            title="Rock Nacional",
+            author="Radio Buenos Aires",
+            genres=("Music", "Music Commentary"),
+            language="es-AR",
+        ),
+        PodcastFactory.build(
+            title="Metal 100%_Loud", author="Heavy Co", genres=("Music",), language=None
+        ),
+    ]

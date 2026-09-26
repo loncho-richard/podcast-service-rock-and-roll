@@ -1,0 +1,178 @@
+# serializer version: 1
+# name: test_get_errors[malformed]
+  dict({
+    'body': dict({
+      'error': dict({
+        'code': 'validation_error',
+        'details': list([
+          dict({
+            'loc': list([
+              'path',
+              'podcast_id',
+            ]),
+            'msg': 'Input should be a valid UUID, invalid character: found `n` at 1',
+            'type': 'uuid_parsing',
+          }),
+        ]),
+        'message': 'Invalid request.',
+      }),
+    }),
+    'status_code': 422,
+  })
+# ---
+# name: test_get_errors[unknown]
+  dict({
+    'body': dict({
+      'error': dict({
+        'code': 'not_found',
+        'details': None,
+        'message': 'Podcast 00000000-0000-0000-0000-000000000000 was not found.',
+      }),
+    }),
+    'status_code': 404,
+  })
+# ---
+# name: test_list_rejects_invalid_parameters[bad-language]
+  dict({
+    'body': dict({
+      'error': dict({
+        'code': 'validation_error',
+        'details': list([
+          dict({
+            'loc': list([
+              'query',
+              'language',
+            ]),
+            'msg': "String should match pattern '^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})?$'",
+            'type': 'string_pattern_mismatch',
+          }),
+        ]),
+        'message': 'Invalid request.',
+      }),
+    }),
+    'status_code': 422,
+  })
+# ---
+# name: test_list_rejects_invalid_parameters[empty-query]
+  dict({
+    'body': dict({
+      'error': dict({
+        'code': 'validation_error',
+        'details': list([
+          dict({
+            'loc': list([
+              'query',
+              'q',
+            ]),
+            'msg': 'String should have at least 1 character',
+            'type': 'string_too_short',
+          }),
+        ]),
+        'message': 'Invalid request.',
+      }),
+    }),
+    'status_code': 422,
+  })
+# ---
+# name: test_list_rejects_invalid_parameters[page-size-too-big]
+  dict({
+    'body': dict({
+      'error': dict({
+        'code': 'validation_error',
+        'details': list([
+          dict({
+            'loc': list([
+              'query',
+              'page_size',
+            ]),
+            'msg': 'Input should be less than or equal to 100',
+            'type': 'less_than_equal',
+          }),
+        ]),
+        'message': 'Invalid request.',
+      }),
+    }),
+    'status_code': 422,
+  })
+# ---
+# name: test_list_rejects_invalid_parameters[page-zero]
+  dict({
+    'body': dict({
+      'error': dict({
+        'code': 'validation_error',
+        'details': list([
+          dict({
+            'loc': list([
+              'query',
+              'page',
+            ]),
+            'msg': 'Input should be greater than or equal to 1',
+            'type': 'greater_than_equal',
+          }),
+        ]),
+        'message': 'Invalid request.',
+      }),
+    }),
+    'status_code': 422,
+  })
+# ---
+# name: test_list_returns_a_page_of_podcasts
+  dict({
+    'body': dict({
+      'items': list([
+        dict({
+          'author': 'Rock Radio',
+          'country': 'USA',
+          'cover_image_url': 'https://images.example.com/classic-rock.jpg',
+          'description': 'Stories behind the greatest rock records.',
+          'episode_count': 120,
+          'explicit': False,
+          'feed_url': 'https://feeds.example.com/classic-rock.xml',
+          'genres': list([
+            'Music',
+            'Music History',
+          ]),
+          'language': 'en-US',
+          'palette': list([
+            '#1a1a1a',
+            '#c0392b',
+            '#f5f5f5',
+          ]),
+          'primary_genre': 'Music',
+          'released_at': '2026-09-01T10:00:00Z',
+          'source': 'itunes',
+          'store_url': 'https://podcasts.apple.com/podcast/id1000',
+          'title': 'Classic Rock Hour',
+        }),
+        dict({
+          'author': 'Heavy Co',
+          'country': 'USA',
+          'cover_image_url': 'https://images.example.com/classic-rock.jpg',
+          'description': 'Stories behind the greatest rock records.',
+          'episode_count': 120,
+          'explicit': False,
+          'feed_url': 'https://feeds.example.com/classic-rock.xml',
+          'genres': list([
+            'Music',
+          ]),
+          'language': None,
+          'palette': list([
+            '#1a1a1a',
+            '#c0392b',
+            '#f5f5f5',
+          ]),
+          'primary_genre': 'Music',
+          'released_at': '2026-09-01T10:00:00Z',
+          'source': 'itunes',
+          'store_url': 'https://podcasts.apple.com/podcast/id1000',
+          'title': 'Metal 100%_Loud',
+        }),
+      ]),
+      'page': 1,
+      'page_size': 2,
+      'total': 4,
+      'total_pages': 2,
+    }),
+    'status_code': 200,
+  })
+# ---

@@ -1,7 +1,7 @@
 """In-memory fakes of the ports, shared by application and API tests."""
 
 import asyncio
-from collections.abc import AsyncIterator, Sequence
+from collections.abc import AsyncIterator, Iterable, Sequence
 from dataclasses import replace
 from datetime import UTC, datetime
 from types import TracebackType
@@ -141,11 +141,12 @@ class InMemoryPodcastRepository(PodcastRepository):
 
 
 class InMemoryUnitOfWork(UnitOfWork):
-    """Shares one repository across units of work; `commits` counts committed units."""
+    """Shares one repository across units of work; counts commits and closed units."""
 
     def __init__(self, repository: InMemoryPodcastRepository) -> None:
         self.podcasts = repository
         self.commits = 0
+        self.exits = 0
 
     async def __aenter__(self) -> Self:
         return self
@@ -156,7 +157,13 @@ class InMemoryUnitOfWork(UnitOfWork):
         exc: BaseException | None,
         traceback: TracebackType | None,
     ) -> None:
-        return None
+        self.exits += 1
 
     async def commit(self) -> None:
         self.commits += 1
+
+
+async def as_stream(podcasts: Iterable[Podcast]) -> AsyncIterator[Podcast]:
+    """Present a plain list the way `PodcastRepository.stream_all` yields rows."""
+    for podcast in podcasts:
+        yield podcast

@@ -1,9 +1,11 @@
 from datetime import datetime
+from math import ceil
 from uuid import UUID
 
 from pydantic import BaseModel, Field
 
 from podcast_service.domain.podcast.entities import Podcast
+from podcast_service.domain.podcast.filters import Page
 
 
 class PodcastResponse(BaseModel):
@@ -56,4 +58,22 @@ class PodcastResponse(BaseModel):
             released_at=podcast.released_at,
             created_at=podcast.created_at,
             updated_at=podcast.updated_at,
+        )
+
+
+class PodcastPage(BaseModel):
+    items: list[PodcastResponse]
+    page: int
+    page_size: int
+    total: int = Field(description="Podcasts matching the filters, across all pages.")
+    total_pages: int
+
+    @classmethod
+    def from_domain(cls, page: Page[Podcast]) -> "PodcastPage":
+        return cls(
+            items=[PodcastResponse.from_domain(podcast) for podcast in page.items],
+            page=page.page,
+            page_size=page.page_size,
+            total=page.total,
+            total_pages=ceil(page.total / page.page_size),
         )

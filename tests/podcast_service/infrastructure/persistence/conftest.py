@@ -3,7 +3,7 @@ from collections.abc import AsyncIterator
 import pytest
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
-from factories import PodcastFactory
+from factories import PodcastFactory, build_catalog
 from podcast_service.domain.podcast.entities import Podcast
 from podcast_service.infrastructure.persistence.database import create_session_factory
 from podcast_service.infrastructure.persistence.podcast_repository import (
@@ -42,25 +42,4 @@ def podcast() -> Podcast:
 
 @pytest.fixture
 async def catalog(repository: SqlAlchemyPodcastRepository) -> list[Podcast]:
-    """Four stored podcasts covering the search, genre and language filters."""
-    podcasts = [
-        PodcastFactory.build(
-            title="Classic Rock Hour",
-            author="Rock Radio",
-            genres=("Music", "Music History"),
-            language="en-US",
-        ),
-        PodcastFactory.build(
-            title="Punk Tapes", author="Garage Collective", genres=("Music",), language="en-GB"
-        ),
-        PodcastFactory.build(
-            title="Rock Nacional",
-            author="Radio Buenos Aires",
-            genres=("Music", "Music Commentary"),
-            language="es-AR",
-        ),
-        PodcastFactory.build(
-            title="Metal 100%_Loud", author="Heavy Co", genres=("Music",), language=None
-        ),
-    ]
-    return [(await repository.upsert(podcast))[0] for podcast in podcasts]
+    return [(await repository.upsert(podcast))[0] for podcast in build_catalog()]

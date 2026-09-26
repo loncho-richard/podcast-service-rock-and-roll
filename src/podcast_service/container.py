@@ -5,6 +5,7 @@ from podcast_service.application.auth.issue_token import IssueAccessToken
 from podcast_service.application.ingestion.bulk_ingest import BulkIngestPodcasts
 from podcast_service.application.ingestion.enrichment import PodcastEnricher
 from podcast_service.application.ingestion.single_ingest import IngestSinglePodcast
+from podcast_service.application.podcast.queries import ExportPodcasts, GetPodcast, ListPodcasts
 from podcast_service.config import Settings
 from podcast_service.domain.ingestion.normalizer import PodcastNormalizer
 from podcast_service.domain.ingestion.relevance import RockRelevancePolicy
@@ -123,3 +124,8 @@ class Container(containers.DeclarativeContainer):
         enricher=enricher,
         uow_factory=unit_of_work.provider,
     )
+
+    # --- queries ---
+    list_podcasts = providers.Factory(ListPodcasts, uow_factory=unit_of_work.provider)
+    get_podcast = providers.Factory(GetPodcast, uow_factory=unit_of_work.provider)
+    export_podcasts = providers.Factory(ExportPodcasts, uow_factory=unit_of_work.provider)
