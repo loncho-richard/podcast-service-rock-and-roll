@@ -10,3 +10,7 @@ class DomainError(Exception):
 
 class NotFoundError(DomainError):
     code = "not_found"
+
+
+class InvalidValueError(DomainError):
+    code = "invalid_value"
