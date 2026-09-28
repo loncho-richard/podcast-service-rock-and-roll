@@ -216,6 +216,13 @@ A missing or broken cover never fails an ingestion: the podcast is stored with
   (the term fails, and if all do the bulk run uses the offline sample), so no request
   hangs on the limiter. The limiter is per process: several replicas would need a
   shared one (e.g. Redis).
+- **Why no response cache:** the brief offers rate limiting *or* caching, and I
+  built and measured a cache for iTunes responses before discarding it. A default
+  bulk ingestion spends about 0.3 s of its ~25 s in iTunes (6 searches); about 23 s
+  go to downloading the RSS feeds during enrichment and about 1 s to the covers. A
+  warm cache saved those 0.3 s and nothing else, so it was not worth the extra code.
+  The real lever is the feeds: we download up to 2 MB of each one to read a header
+  of a few KB, so stopping at the first episode would speed up every run.
 - **429s still handled:** if iTunes rate-limits us anyway, `Retry-After` is honoured,
   and a single-podcast lookup still rate-limited after retries counts as "source
   unavailable" (fallback sample or `503`), never as "podcast not found".
@@ -316,7 +323,7 @@ reachable only from the internal network, and with several Uvicorn workers
   (see Resilience). I left these out on purpose, to keep the core small and solid:
   - Richer filtering (country, explicit, several genres).
   - Episode ingestion.
-  - Caching iTunes responses.
+  - Caching iTunes responses (built, measured and discarded; see Resilience).
 
 ## Evolving to continuous ingestion and millions of episodes
 
