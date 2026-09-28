@@ -27,7 +27,7 @@ is needed to try it.
 
 1. Click **Authorize** and log in with username `reviewer`, password
    `local-dev-secret-change-me` (leave the client fields empty).
-2. `POST /ingestion/bulk` → **Try it out** → **Execute**. It takes around 20–30 seconds
+2. `POST /ingestion/bulk` → **Try it out** → **Execute**. It takes around 10 seconds
    (feeds and covers are downloaded) and returns a summary like:
    ```json
    {"source": "live", "fetched": 136, "stored": 94, "created": 94, "updated": 0,
@@ -106,7 +106,7 @@ enrichment work. Each request also produces one access line:
 ```json
 {"timestamp": "2026-09-27T14:03:11.512+00:00", "level": "INFO", "logger": "podcast_service.access",
  "message": "POST /ingestion/bulk 200", "request_id": "3f9c…", "method": "POST",
- "path": "/ingestion/bulk", "route": "/ingestion/bulk", "status": 200, "duration_ms": 24103.7}
+ "path": "/ingestion/bulk", "route": "/ingestion/bulk", "status": 200, "duration_ms": 8103.7}
 ```
 
 ```bash
@@ -152,7 +152,7 @@ the ones marked *compose* and gives them local defaults.
 | `HTTP_RETRY_MAX_DELAY_SECONDS` | `8` | Backoff cap (also caps `Retry-After`). |
 | `ENRICHMENT_RETRY_ATTEMPTS` | `2` | Attempts for feeds and covers. |
 | `ENRICHMENT_CONCURRENCY` | `8` | Podcasts enriched in parallel. |
-| `MAX_FEED_BYTES` | `2000000` | RSS download cap (the header is read, the rest truncated). |
+| `MAX_FEED_BYTES` | `2000000` | Backstop cap for RSS downloads; reading normally stops at the first episode. |
 | `MAX_COVER_BYTES` | `5000000` | Covers above this are skipped. |
 | `DOWNLOAD_DEADLINE_SECONDS` | `30` | Hard cap per feed/cover download, retries included. |
 | `PALETTE_SIZE` | `5` | Colors per palette. |

@@ -203,6 +203,41 @@ into up to 5 colors, ordered by the share of the image each covers. Two guards a
 A missing or broken cover never fails an ingestion: the podcast is stored with
 `palette: null` and counted in `palette_failures`.
 
+### Reading only each feed's header
+
+**The problem, measured.** Timing each stage of a default bulk ingestion showed that
+about 23 s of its ~25 s went to downloading RSS feeds; iTunes took 0.3 s and the
+covers about 1 s. We only need the channel header (description and language), a few
+KB at the top of the document, but we were downloading up to 2 MB of every feed
+because podcast feeds list hundreds of episodes after it: 38 MB in total for 92
+feeds, a median of 261 KB each.
+
+**The decision.** Stop reading each feed at its first episode (`<item>` in RSS,
+`<entry>` in Atom). RSS and Atom put the channel metadata before the entries, and
+feedparser already copes with a truncated document. The 2 MB cap stays as a
+backstop for feeds without episodes.
+
+**Alternatives I discarded:**
+- *Caching*: a cache of iTunes responses saved only the 0.3 s spent in iTunes (see
+  Resilience), and caching feeds would only help repeated runs, not the first one.
+- *More concurrency*: it spreads the same 38 MB over more simultaneous connections
+  to third-party hosts; the work stays the same and we become less polite.
+- *Conditional requests (`ETag`)*: they avoid re-downloading unchanged feeds on later
+  runs, but the first run still pays for every byte; they complement this rather
+  than replace it.
+
+**The result.** On the 92 real feeds: 3.5 MB downloaded instead of 38 MB (median
+6 KB per feed), feed reading from 22.8 s to 8.7 s, and a bulk ingestion through the
+API from ~25 s to ~8 s. I compared what every feed yielded before and after: the
+descriptions and languages were identical (one differed only in `\r\n` vs `\n`,
+which normalization collapses), and re-ingesting over data stored by the old version
+reported all 94 podcasts as `unchanged`.
+
+**The trade-off.** A feed that declares its description or language *after* its
+episodes would now lose them. None of the 92 real feeds does, and enrichment never
+erases data: such a podcast keeps whatever an earlier run stored (`COALESCE` on
+re-ingestion).
+
 ### Resilience, where it is needed
 
 - **Retries:** only for transient failures (timeouts, connection errors, 408, 425,
@@ -211,11 +246,13 @@ A missing or broken cover never fails an ingestion: the podcast is stored with
   Client errors and malformed payloads fail fast.
 - **Fallback and degradation:** the offline sample covers the source. Feeds and
   covers degrade gracefully.
-- **Limits:** bounded enrichment concurrency (8), download size caps (2 MB feeds, of
-  which only the header is needed; 5 MB covers) and timeouts on every call. Every
-  feed/cover download also has a 30 s total deadline, retries included: httpx
-  timeouts apply per network operation, so without it a server trickling bytes
-  could stall a whole bulk ingestion.
+- **Limits:** bounded enrichment concurrency (8), size caps on downloads (5 MB covers;
+  feeds, see below) and timeouts on every call. Every feed/cover download also has
+  a 30 s total deadline, retries included: httpx timeouts apply per network
+  operation, so without it a server trickling bytes could stall a whole bulk
+  ingestion.
+- **Feeds are read only up to their first episode**, with a 2 MB backstop cap (see
+  Reading only each feed's header).
 - **Last line of defence:** each adapter degrades gracefully on its own, and the
   enricher also contains any unexpected exception per podcast, so one bad cover
   can never fail the batch.
@@ -231,8 +268,8 @@ A missing or broken cover never fails an ingestion: the podcast is stored with
   bulk ingestion spends about 0.3 s of its ~25 s in iTunes (6 searches); about 23 s
   go to downloading the RSS feeds during enrichment and about 1 s to the covers. A
   warm cache saved those 0.3 s and nothing else, so it was not worth the extra code.
-  The real lever is the feeds: we download up to 2 MB of each one to read a header
-  of a few KB, so stopping at the first episode would speed up every run.
+  I spent the effort on the feeds instead, where the time actually goes (see
+  Reading only each feed's header).
 - **429s still handled:** if iTunes rate-limits us anyway, `Retry-After` is honoured,
   and a single-podcast lookup still rate-limited after retries counts as "source
   unavailable" (fallback sample or `503`), never as "podcast not found".
@@ -241,9 +278,9 @@ A missing or broken cover never fails an ingestion: the podcast is stored with
 
 ### Ingestion runs inside the request
 
-A default bulk ingestion takes about 25 s (136 results, of which 94 are kept and
-enriched with their feed and cover). That
-is acceptable for an operator-triggered endpoint and keeps the design simple. Request
+A default bulk ingestion takes about 8 s (136 results, of which 94 are kept and
+enriched with their feed and cover). That is acceptable for an operator-triggered
+endpoint and keeps the design simple. Request
 size is bounded (≤ 20 terms × ≤ 200 results).
 
 The downside is that a client timeout doesn't cancel the work, and very large batches
@@ -320,10 +357,8 @@ reachable only from the internal network, and with several Uvicorn workers
 ## What I would do with more time
 
 - **Jobs for ingestion:** return `202` with a job id; run the work in a worker.
-- **Enrichment efficiency:** stop downloading each feed once its channel header has
-  been read (today up to 2 MB per feed for a few KB; feeds are ~23 s of a ~25 s run),
-  then conditional requests (`ETag` / `If-Modified-Since`) for feeds and covers, and
-  skip palette extraction when the cover URL hasn't changed.
+- **Enrichment efficiency:** conditional requests (`ETag` / `If-Modified-Since`) for
+  feeds and covers, and skip palette extraction when the cover URL hasn't changed.
 - **Pagination and search:** keyset pagination, and a relevance-ordered search option
   (`pg_trgm` similarity or full-text search).
 - **Observability:** tracing (OpenTelemetry) across the API, the database and the

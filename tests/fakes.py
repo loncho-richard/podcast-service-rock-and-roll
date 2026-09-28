@@ -195,3 +195,16 @@ class FakeClock:
     async def sleep(self, seconds: float) -> None:
         self.sleeps.append(seconds)
         self.now += seconds
+
+
+class ChunkedBody:
+    """A streamed HTTP body that records how many chunks the client actually read."""
+
+    def __init__(self, *chunks: bytes) -> None:
+        self._chunks = chunks
+        self.served = 0
+
+    async def __aiter__(self) -> AsyncIterator[bytes]:
+        for chunk in self._chunks:
+            self.served += 1
+            yield chunk

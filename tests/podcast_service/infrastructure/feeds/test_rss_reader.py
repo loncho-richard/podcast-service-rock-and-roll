@@ -4,6 +4,7 @@ import httpx
 import pytest
 import respx
 
+from fakes import ChunkedBody
 from podcast_service.domain.ingestion import FeedDetails
 from podcast_service.infrastructure.feeds import RssFeedReader
 
@@ -75,3 +76,16 @@ async def test_reads_are_counted(
     await rss_reader.read(FEED_URL)
 
     assert (successes(), failures()) == (1, 1)
+
+
+async def test_reading_stops_at_the_first_episode(
+    respx_mock: respx.MockRouter, rss_reader: RssFeedReader, streamed_feed: ChunkedBody
+) -> None:
+    respx_mock.get(FEED_URL).mock(return_value=httpx.Response(200, content=streamed_feed))
+
+    details = await rss_reader.read(FEED_URL)
+
+    assert (details, streamed_feed.served) == (
+        FeedDetails(description="Garage punk.", language="en-gb"),
+        3,
+    )

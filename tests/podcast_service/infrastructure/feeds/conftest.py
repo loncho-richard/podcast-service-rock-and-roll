@@ -1,6 +1,7 @@
 import httpx
 import pytest
 
+from fakes import ChunkedBody
 from podcast_service.infrastructure import RetryPolicy
 from podcast_service.infrastructure.feeds import RssFeedReader
 
@@ -37,3 +38,14 @@ def rss_feed_without_summary() -> bytes:
 <rss version="2.0"><channel>
   <title>Punk Tapes</title><description>Only a description.</description>
 </channel></rss>"""
+
+
+@pytest.fixture
+def streamed_feed() -> ChunkedBody:
+    """Header in the first two chunks, then 501 episodes."""
+    return ChunkedBody(
+        b'<?xml version="1.0"?><rss version="2.0"><channel><title>Punk Tapes</title>',
+        b"<language>en-gb</language><description>Garage punk.</description>",
+        b"<item><title>Episode 1</title></item>",
+        *(b"<item><title>Older episode</title></item>" for _ in range(500)),
+    )

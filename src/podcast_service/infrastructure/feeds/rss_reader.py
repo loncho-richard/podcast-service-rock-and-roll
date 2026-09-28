@@ -11,13 +11,14 @@ from podcast_service.infrastructure.observability import record_upstream
 
 logger = logging.getLogger(__name__)
 
+_FIRST_EPISODE = (b"<item", b"<entry")  # RSS, Atom
+
 
 class RssFeedReader(FeedReader):
     """Reads channel-level details (description, language) from a podcast RSS feed.
 
-    Only the channel header is needed, and it comes first in the document, so the
-    download is capped: huge feeds with thousands of episodes are simply truncated
-    and feedparser (which is lenient with broken XML) still reads the header.
+    Only the channel header is needed and it precedes the episodes, so the download
+    stops at the first episode; feedparser is lenient with the truncated document.
     """
 
     def __init__(
@@ -35,7 +36,12 @@ class RssFeedReader(FeedReader):
     async def read(self, feed_url: str) -> FeedDetails | None:
         try:
             body = await download(
-                self._http, feed_url, self._retry_policy, self._max_bytes, self._deadline_seconds
+                self._http,
+                feed_url,
+                self._retry_policy,
+                self._max_bytes,
+                self._deadline_seconds,
+                stop_at=_FIRST_EPISODE,
             )
             parsed: Any = await asyncio.to_thread(feedparser.parse, body.content)
         except Exception as exc:  # enrichment must never break an ingestion

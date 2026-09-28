@@ -4,6 +4,7 @@ import httpx
 import pytest
 import respx
 
+from fakes import ChunkedBody
 from podcast_service.infrastructure import Download, RetryPolicy, download
 
 URL = "https://files.test/cover.jpg"
@@ -55,3 +56,27 @@ async def test_download_gives_up_at_the_deadline(
 
     with pytest.raises(TimeoutError):
         await download(http_client, URL, retry_policy, max_bytes=10, deadline_seconds=0.05)
+
+
+@pytest.mark.parametrize(
+    "chunks",
+    [
+        (b"<rss><channel>", b"<title>x</title><item>1</item>", b"<item>2</item>", b"..."),
+        (b"<rss><channel><title>x</title><it", b"em>1</item>", b"<item>2</item>", b"..."),
+    ],
+    ids=["marker-in-a-chunk", "marker-split-across-chunks"],
+)
+async def test_download_stops_reading_once_a_marker_arrives(
+    respx_mock: respx.MockRouter,
+    http_client: httpx.AsyncClient,
+    retry_policy: RetryPolicy,
+    chunks: tuple[bytes, ...],
+) -> None:
+    body = ChunkedBody(*chunks)
+    respx_mock.get(URL).mock(return_value=httpx.Response(200, content=body))
+
+    result = await download(
+        http_client, URL, retry_policy, max_bytes=1_000, deadline_seconds=5, stop_at=(b"<item",)
+    )
+
+    assert (body.served, result.content) == (2, b"".join(chunks[:2]))
