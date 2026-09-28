@@ -1,4 +1,4 @@
-from collections.abc import AsyncIterator, Iterator
+from collections.abc import AsyncIterator, Callable, Iterator
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -8,6 +8,7 @@ from alembic import command
 from alembic.config import Config
 from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
+from prometheus_client import REGISTRY
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine
 from testcontainers.community.postgres import PostgresContainer
@@ -69,6 +70,20 @@ def app(container: Container) -> FastAPI:
 async def client(app: FastAPI) -> AsyncIterator[AsyncClient]:
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         yield client
+
+
+# --- metrics -------------------------------------------------------------------
+
+
+@pytest.fixture
+def metric_delta() -> Callable[..., Callable[[], float]]:
+    """Metrics are process-wide, so tests measure the increase since `track(...)`."""
+
+    def track(name: str, **labels: str) -> Callable[[], float]:
+        before = REGISTRY.get_sample_value(name, labels) or 0.0
+        return lambda: (REGISTRY.get_sample_value(name, labels) or 0.0) - before
+
+    return track
 
 
 # --- auth --------------------------------------------------------------------

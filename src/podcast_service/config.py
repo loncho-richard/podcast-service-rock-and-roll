@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -15,6 +17,7 @@ class Settings(DatabaseSettings):
 
     app_name: str = "Rock & Roll Podcast Service"
     log_level: str = "INFO"
+    log_format: Literal["json", "text"] = "json"
 
     # Single static client (the brief rules out user management). No defaults on
     # purpose: the service refuses to start with a well-known secret.

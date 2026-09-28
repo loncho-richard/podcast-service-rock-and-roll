@@ -4,6 +4,7 @@ import httpx
 
 from podcast_service.domain.ingestion import ImageFetcher
 from podcast_service.infrastructure import RetryPolicy, download
+from podcast_service.infrastructure.observability import record_upstream
 
 logger = logging.getLogger(__name__)
 
@@ -29,8 +30,10 @@ class HttpImageFetcher(ImageFetcher):
                 self._http, url, self._retry_policy, self._max_bytes, self._deadline_seconds
             )
         except (httpx.HTTPError, httpx.InvalidURL, TimeoutError) as exc:
+            record_upstream("cover", succeeded=False)
             logger.warning("Could not download cover %s: %r", url, exc)
             return None
+        record_upstream("cover", succeeded=True)
         if not body.content_type.startswith("image/"):
             logger.warning("Cover %s is not an image (%s)", url, body.content_type)
             return None

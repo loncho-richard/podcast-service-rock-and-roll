@@ -250,6 +250,25 @@ uses the GIN index, and case-insensitive matching would need a normalized copy o
 the genres. I'd move to keyset (cursor) pagination on `(title, id)` first if the
 catalog grew.
 
+### Observability
+
+Logs are JSON lines on stdout (the twelve-factor way: the platform ships them), with
+the request id from a `ContextVar` so every line of a request, including concurrent
+enrichment tasks, can be correlated. A plain ASGI middleware (not `BaseHTTPMiddleware`)
+owns the request id, the access log and the HTTP metrics, so streamed responses such as
+the export are measured to their last byte; it also logs unhandled errors while the
+request id is still set. Uvicorn's own access log is disabled (it has no request id)
+and `httpx`'s per-request INFO lines are silenced (hundreds per bulk run).
+
+`/metrics` exposes Prometheus counters and a latency histogram. Labels stay
+low-cardinality on purpose: the route *template* rather than the raw path (unmatched
+paths share one label), and the kind of upstream rather than its host (every podcast
+has its own feed host). Business metrics (ingestion outcomes, fallbacks) are recorded
+at the API edge from the use case's result, so the application layer stays free of
+Prometheus. Like `/health`, `/metrics` is public here; in production it would be
+reachable only from the internal network, and with several Uvicorn workers
+`prometheus_client` needs its multiprocess mode (or one scrape target per worker).
+
 ## Assumptions
 
 - A single static API client is enough (the brief rules out user management).
@@ -281,12 +300,13 @@ catalog grew.
   Today every run downloads everything again.
 - **Pagination and search:** keyset pagination, and a relevance-ordered search option
   (`pg_trgm` similarity or full-text search).
-- **Observability:** structured JSON logs with request ids, and metrics (ingestion
-  counts, upstream latency and errors).
-- **Nice-to-haves from the brief:** I built only the CI workflow
+- **Observability:** tracing (OpenTelemetry) across the API, the database and the
+  third-party calls, and dashboards and alerts on the metrics already exposed.
+- **Nice-to-haves from the brief:** I built the CI workflow
   (`.github/workflows/ci.yml`: ruff, mypy and the full test suite, integration tests
-  included, on every push to `main` and every pull request). I left these out on
-  purpose, to keep the core small and solid:
+  included, on every push to `main` and every pull request) and structured logging
+  with a metrics endpoint (see Observability above). I left these out on purpose, to
+  keep the core small and solid:
   - Richer filtering (country, explicit, several genres).
   - Episode ingestion.
   - Rate limiting or caching of iTunes calls.
@@ -342,8 +362,9 @@ store), so scaling it means putting queues between them rather than rewriting th
     backwards-compatible (expand, then contract).
   - The platform does a rolling or blue/green deploy gated on health checks, and
     rolling back means redeploying the previous tag.
-- **Operations:** centralized logs, metrics and alerts on error rate, latency and
-  ingestion failures.
+- **Operations:** the JSON logs go to the platform's log store (CloudWatch, Cloud
+  Logging, Loki) and `/metrics` is scraped by Prometheus or the platform's agent, with
+  alerts on error rate, latency, `itunes_fallbacks_total` and upstream failures.
 
 ## Use of AI tools
 

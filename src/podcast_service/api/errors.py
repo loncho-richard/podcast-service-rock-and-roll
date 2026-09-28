@@ -1,4 +1,3 @@
-import logging
 from collections.abc import Mapping
 from http import HTTPStatus
 from typing import Any
@@ -12,8 +11,6 @@ from podcast_service.api.schemas import ErrorDetail, ErrorResponse
 from podcast_service.application.auth import AuthenticationError
 from podcast_service.domain.ingestion import PodcastRejectedError, SourceUnavailableError
 from podcast_service.domain.shared import DomainError, NotFoundError
-
-logger = logging.getLogger(__name__)
 
 _DOMAIN_STATUS: dict[type[DomainError], int] = {
     AuthenticationError: HTTPStatus.UNAUTHORIZED,
@@ -101,7 +98,6 @@ async def _handle_validation_error(_: Request, exc: Exception) -> JSONResponse:
 
 
 async def _handle_unexpected_error(_: Request, exc: Exception) -> JSONResponse:
-    logger.exception("Unhandled error", exc_info=exc)
     return error_response(
         HTTPStatus.INTERNAL_SERVER_ERROR, "internal_error", "An unexpected error occurred."
     )

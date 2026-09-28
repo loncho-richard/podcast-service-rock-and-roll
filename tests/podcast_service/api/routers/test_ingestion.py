@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from typing import Any
 
 import pytest
@@ -125,3 +126,17 @@ async def test_single_ingestion_errors(
     response = await client.post(f"/ingestion/podcasts/{itunes_id}", headers=auth_headers)
 
     assert {"status_code": response.status_code, "body": response.json()} == snapshot
+
+
+async def test_bulk_ingestion_is_reflected_in_the_metrics(
+    client: AsyncClient,
+    auth_headers: dict[str, str],
+    metric_delta: Callable[..., Callable[[], float]],
+) -> None:
+    runs = metric_delta("bulk_ingestions_total", source="live")
+    created = metric_delta("ingested_podcasts_total", outcome="created")
+    skipped = metric_delta("ingested_podcasts_total", outcome="skipped")
+
+    await client.post("/ingestion/bulk", headers=auth_headers)
+
+    assert (runs(), created(), skipped()) == (1, 2, 3)

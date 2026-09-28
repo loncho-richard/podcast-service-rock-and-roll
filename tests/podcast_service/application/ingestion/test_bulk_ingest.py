@@ -1,3 +1,5 @@
+import logging
+
 import pytest
 
 from fakes import COVER_PALETTE, FakePodcastSource, InMemoryPodcastRepository, InMemoryUnitOfWork
@@ -79,3 +81,21 @@ async def test_the_whole_batch_is_committed_once(
     await bulk_ingest.execute(terms=None, limit=25)
 
     assert unit_of_work.commits == 1
+
+
+async def test_the_summary_is_logged_as_structured_fields(
+    bulk_ingest: BulkIngestPodcasts, caplog: pytest.LogCaptureFixture
+) -> None:
+    with caplog.at_level(logging.INFO):
+        await bulk_ingest.execute(terms=None, limit=25)
+
+    [record] = [r for r in caplog.records if r.getMessage() == "Bulk ingestion finished"]
+    assert record.ingestion == {
+        "source": "live",
+        "fetched": 5,
+        "created": 2,
+        "updated": 0,
+        "unchanged": 0,
+        "skipped": 3,
+        "palette_failures": 1,
+    }

@@ -22,4 +22,4 @@ def test_protected_routes_declare_the_bearer_scheme(app: FastAPI) -> None:
         for path, operations in paths.items()
         for method, operation in operations.items()
         if not operation.get("security")
-    ) == ["GET /health", "POST /auth/token"]
+    ) == ["GET /health", "GET /metrics", "POST /auth/token"]

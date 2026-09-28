@@ -154,3 +154,17 @@ async def test_lookup_raises_when_the_source_is_down_and_the_sample_lacks_it(
 
     with pytest.raises(SourceUnavailableError):
         await source.lookup("1001")
+
+
+async def test_failures_and_fallbacks_are_counted(
+    respx_mock: respx.MockRouter,
+    source: ITunesPodcastSource,
+    metric_delta: Callable[..., Callable[[], float]],
+) -> None:
+    failures = metric_delta("upstream_requests_total", upstream="itunes", outcome="failure")
+    fallbacks = metric_delta("itunes_fallbacks_total", operation="search")
+    respx_mock.get(SEARCH_URL).mock(return_value=httpx.Response(503))
+
+    await source.search(["classic rock", "hard rock"], limit=25)
+
+    assert (failures(), fallbacks()) == (2, 1)

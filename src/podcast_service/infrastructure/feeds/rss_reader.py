@@ -7,6 +7,7 @@ import httpx
 
 from podcast_service.domain.ingestion import FeedDetails, FeedReader
 from podcast_service.infrastructure import RetryPolicy, download
+from podcast_service.infrastructure.observability import record_upstream
 
 logger = logging.getLogger(__name__)
 
@@ -38,12 +39,15 @@ class RssFeedReader(FeedReader):
             )
             parsed: Any = await asyncio.to_thread(feedparser.parse, body.content)
         except Exception as exc:  # enrichment must never break an ingestion
+            record_upstream("feed", succeeded=False)
             logger.warning("Could not read feed %s: %r", feed_url, exc)
             return None
 
         if not parsed.get("version"):  # e.g. an HTML error page served with a 200
+            record_upstream("feed", succeeded=False)
             logger.warning("%s is not an RSS/Atom feed", feed_url)
             return None
+        record_upstream("feed", succeeded=True)
         channel = parsed.get("feed") or {}
         details = FeedDetails(
             # itunes:summary is usually the long form; <description> is the fallback.

@@ -7,10 +7,15 @@ from fastapi import Depends, FastAPI
 from httpx import ASGITransport, AsyncClient
 
 from factories import PodcastFactory
-from podcast_service.api import register_exception_handlers, require_auth
+from podcast_service.api import (
+    RequestContextMiddleware,
+    register_exception_handlers,
+    require_auth,
+)
 from podcast_service.container import Container
 from podcast_service.domain.podcast import ExternalRef, Podcast
 from podcast_service.domain.shared import DomainError, NotFoundError
+from podcast_service.infrastructure.observability import request_id_var
 
 
 @pytest.fixture
@@ -98,3 +103,27 @@ def stored_podcasts() -> list[Podcast]:
 @pytest.fixture
 def many_stored_podcasts() -> list[Podcast]:
     return [_stored(index) for index in range(450)]
+
+
+@pytest.fixture
+def observed_app() -> FastAPI:
+    app = FastAPI()
+    register_exception_handlers(app)
+    app.add_middleware(RequestContextMiddleware)
+
+    @app.get("/items/{item_id}")
+    async def item(item_id: int) -> dict[str, object]:
+        return {"item_id": item_id, "request_id": request_id_var.get()}
+
+    @app.get("/crash")
+    async def crash() -> None:
+        raise RuntimeError("bug")
+
+    return app
+
+
+@pytest.fixture
+async def observed_client(observed_app: FastAPI) -> AsyncIterator[AsyncClient]:
+    transport = ASGITransport(app=observed_app, raise_app_exceptions=False)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        yield client

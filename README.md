@@ -77,6 +77,7 @@ ITUNES_BASE_URL=https://itunes.invalid docker compose up -d api
 | Method | Path | Auth | Description |
 |---|---|---|---|
 | GET | `/health` | public | Service and database health (`503` when the DB is down). |
+| GET | `/metrics` | public | Prometheus metrics (see [Observability](#observability)). |
 | POST | `/auth/token` | public | Client credentials (OAuth2 form: `username`/`password`) → bearer JWT. |
 | POST | `/ingestion/bulk` | bearer | Search iTunes, clean, enrich, upsert. Idempotent. Returns a summary. |
 | POST | `/ingestion/podcasts/{itunes_id}` | bearer | Ingest one podcast. `201` new, `200` existing, `404` unknown, `422` rejected (e.g. not rock), `503` source down. |
@@ -89,6 +90,37 @@ Every error uses the same shape:
 ```json
 {"error": {"code": "not_found", "message": "Podcast … was not found.", "details": null}}
 ```
+
+## Observability
+
+**Logs** are JSON lines on stdout (`LOG_FORMAT=text` for a readable terminal). Every
+request gets an id: a safe incoming `X-Request-ID` header is kept (e.g. from a gateway),
+otherwise one is generated. It is returned in the `X-Request-ID` response header and
+attached to every log line written while handling the request, including concurrent
+enrichment work. Each request also produces one access line:
+
+```json
+{"timestamp": "2026-09-27T14:03:11.512+00:00", "level": "INFO", "logger": "podcast_service.access",
+ "message": "POST /ingestion/bulk 200", "request_id": "3f9c…", "method": "POST",
+ "path": "/ingestion/bulk", "route": "/ingestion/bulk", "status": 200, "duration_ms": 24103.7}
+```
+
+```bash
+docker compose logs -f api                     # follow the JSON logs
+docker compose logs api | grep 3f9c            # everything one request did
+```
+
+**Metrics** are served at `GET /metrics` in the Prometheus format:
+
+| Metric | Labels | What it tells you |
+|---|---|---|
+| `http_requests_total` | `method`, `route`, `status` | Traffic and error rate per endpoint (route template, not raw path). |
+| `http_request_duration_seconds` | `method`, `route` | Latency histogram, until the last byte (the export included). |
+| `bulk_ingestions_total` | `source` | Bulk runs, and how many had to use the offline sample (`fallback`). |
+| `ingested_podcasts_total` | `outcome` | `created`, `updated`, `unchanged`, `skipped`. |
+| `palette_failures_total` | | Covers that could not be turned into a palette. |
+| `upstream_requests_total` | `upstream`, `outcome` | iTunes, feed and cover calls after retries: `success` / `failure`. |
+| `itunes_fallbacks_total` | `operation` | Times the offline sample stood in for iTunes (`search`, `lookup`). |
 
 ## Configuration
 
@@ -103,6 +135,7 @@ the ones marked *compose* and gives them local defaults.
 | `JWT_TTL_SECONDS` | `3600` | Token lifetime. *compose* |
 | `DATABASE_URL` | `postgresql+asyncpg://podcasts:podcasts@localhost:5432/podcasts` | *compose* points it at the `db` service. |
 | `LOG_LEVEL` | `INFO` | *compose* |
+| `LOG_FORMAT` | `json` | `json` (one object per line) or `text`. *compose* |
 | `ITUNES_BASE_URL` | `https://itunes.apple.com` | *compose* |
 | `ITUNES_COUNTRY` | `US` | iTunes store country. |
 | `ITUNES_SEARCH_TERMS` | `["rock and roll", "classic rock", "punk rock", "hard rock", "heavy metal", "rockabilly"]` | JSON list; used when `/ingestion/bulk` gets no `terms`. |

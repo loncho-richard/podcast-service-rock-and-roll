@@ -50,16 +50,28 @@ class BulkIngestPodcasts:
             skipped_records=tuple(skipped),
         )
         logger.info(
-            "Bulk ingestion (%s): fetched=%d created=%d updated=%d unchanged=%d skipped=%d "
-            "palette_failures=%d",
-            summary.source_mode,
-            summary.fetched,
-            summary.created,
-            summary.updated,
-            summary.unchanged,
-            summary.skipped,
-            summary.palette_failures,
+            "Bulk ingestion finished",
+            extra={
+                "ingestion": {
+                    "source": summary.source_mode.value,
+                    "fetched": summary.fetched,
+                    "created": summary.created,
+                    "updated": summary.updated,
+                    "unchanged": summary.unchanged,
+                    "skipped": summary.skipped,
+                    "palette_failures": summary.palette_failures,
+                }
+            },
         )
         for record in summary.skipped_records:
-            logger.info("Skipped %s (%s): %s", record.external_id, record.title, record.reason)
+            logger.info(
+                "Skipped podcast",
+                extra={
+                    "skipped": {
+                        "external_id": record.external_id,
+                        "title": record.title,
+                        "reason": record.reason.value,
+                    }
+                },
+            )
         return summary

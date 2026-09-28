@@ -57,3 +57,21 @@ async def test_unusable_feeds_return_none(
     respx_mock.get(FEED_URL).mock(side_effect=respond)
 
     assert await rss_reader.read(FEED_URL) is None
+
+
+async def test_reads_are_counted(
+    respx_mock: respx.MockRouter,
+    rss_reader: RssFeedReader,
+    rss_feed_without_summary: bytes,
+    metric_delta: Callable[..., Callable[[], float]],
+) -> None:
+    successes = metric_delta("upstream_requests_total", upstream="feed", outcome="success")
+    failures = metric_delta("upstream_requests_total", upstream="feed", outcome="failure")
+    respx_mock.get(FEED_URL).mock(
+        side_effect=[httpx.Response(200, content=rss_feed_without_summary), httpx.Response(404)]
+    )
+
+    await rss_reader.read(FEED_URL)
+    await rss_reader.read(FEED_URL)
+
+    assert (successes(), failures()) == (1, 1)

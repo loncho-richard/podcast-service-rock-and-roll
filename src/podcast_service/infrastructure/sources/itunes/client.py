@@ -12,6 +12,7 @@ from podcast_service.domain.ingestion import (
     SourceUnavailableError,
 )
 from podcast_service.infrastructure import RetryPolicy, get_with_retry, is_transient
+from podcast_service.infrastructure.observability import ITUNES_FALLBACKS, record_upstream
 from podcast_service.infrastructure.sources.itunes.fallback import ITunesSampleFallback
 from podcast_service.infrastructure.sources.itunes.mapper import map_result, result_id
 
@@ -52,9 +53,13 @@ class ITunesPodcastSource(PodcastSource):
                 results.extend(await self._get_results("/search", params))
             except (httpx.HTTPError, ValueError) as exc:
                 failed_terms += 1
+                record_upstream("itunes", succeeded=False)
                 logger.warning("iTunes search for %r failed: %r", term, exc)
+            else:
+                record_upstream("itunes", succeeded=True)
 
         if terms and failed_terms == len(terms):
+            ITUNES_FALLBACKS.labels("search").inc()
             logger.warning("iTunes is unavailable; serving the stored sample instead")
             return SourceBatch(
                 _unique_records(self._fallback.search_results(limit)), SourceMode.FALLBACK
@@ -67,11 +72,13 @@ class ITunesPodcastSource(PodcastSource):
             results = await self._get_results("/lookup", params)
         except httpx.HTTPStatusError as exc:
             if not is_transient(exc):
+                record_upstream("itunes", succeeded=True)
                 return None  # iTunes answers 400 for ids it cannot parse
             # Still failing after retries (e.g. 429 rate limit, 5xx): the source is down.
             return self._lookup_fallback(external_id, exc)
         except (httpx.HTTPError, ValueError) as exc:
             return self._lookup_fallback(external_id, exc)
+        record_upstream("itunes", succeeded=True)
 
         podcast = next(
             (item for item in results if isinstance(item, dict) and item.get("kind") == "podcast"),
@@ -81,6 +88,8 @@ class ITunesPodcastSource(PodcastSource):
 
     def _lookup_fallback(self, external_id: str, exc: Exception) -> RawPodcastRecord:
         logger.warning("iTunes lookup for %s failed: %r", external_id, exc)
+        record_upstream("itunes", succeeded=False)
+        ITUNES_FALLBACKS.labels("lookup").inc()
         item = self._fallback.lookup_result(external_id)
         if item is None:
             raise SourceUnavailableError(

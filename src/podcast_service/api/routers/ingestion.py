@@ -13,6 +13,10 @@ from podcast_service.api.schemas import (
 from podcast_service.application.ingestion import BulkIngestPodcasts, IngestSinglePodcast
 from podcast_service.container import Container
 from podcast_service.domain.podcast import UpsertOutcome
+from podcast_service.infrastructure.observability import (
+    record_bulk_ingestion,
+    record_single_ingestion,
+)
 
 router = APIRouter(
     prefix="/ingestion",
@@ -39,6 +43,7 @@ async def bulk_ingest(
 ) -> IngestionSummaryResponse:
     request = request or BulkIngestionRequest()
     summary = await use_case.execute(terms=request.terms, limit=request.limit)
+    record_bulk_ingestion(summary)
     return IngestionSummaryResponse.from_domain(summary)
 
 
@@ -62,6 +67,7 @@ async def ingest_single(
     use_case: IngestSinglePodcast = Depends(Provide[Container.ingest_single]),
 ) -> SingleIngestionResponse:
     result = await use_case.execute(itunes_id)
+    record_single_ingestion(result.outcome, palette_failed=result.palette_failed)
     if result.outcome is UpsertOutcome.CREATED:
         response.status_code = HTTPStatus.CREATED.value
     return SingleIngestionResponse.from_domain(result)
