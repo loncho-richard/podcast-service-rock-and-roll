@@ -1,8 +1,18 @@
 # Notes
 
-How to run it, configure it and run the tests is in the [README](README.md). This file
-covers the architecture, the decisions behind it, what I would do next, and how I would
-take it to production.
+This file covers the architecture, the decisions behind it, what I would do next, and
+how I would take it to production. The [README](README.md) has the full startup guide
+(configuration, curl examples, tests); the short version:
+
+```bash
+docker compose up --build            # API on :8000, migrations run on startup
+open http://localhost:8000/docs      # Authorize: reviewer / local-dev-secret-change-me
+uv sync && uv run pytest             # tests (integration tests need Docker)
+```
+
+**Time spent:** about 6 hours in total, within the ~8 hour cap. The core came first;
+the nice-to-haves (CI, observability, iTunes rate limiting) were added once it was
+done and reviewed.
 
 ## Architecture overview
 
@@ -40,8 +50,8 @@ The code follows a light **Domain-Driven Design** layering. Dependencies point i
 |---|---|---|
 | `domain` | `Podcast` aggregate, value objects (`ExternalRef`, `ColorPalette`), `PodcastNormalizer`, `RockRelevancePolicy`, ports (`PodcastRepository`, `PodcastSource`, `FeedReader`, `ImageFetcher`, `PaletteExtractor`) | standard library only |
 | `application` | Use cases (`BulkIngestPodcasts`, `IngestSinglePodcast`, `ListPodcasts`, `GetPodcast`, `ExportPodcasts`, `IssueAccessToken`), `PodcastEnricher`, `UnitOfWork` port | domain |
-| `infrastructure` | SQLAlchemy repository and unit of work, iTunes client and offline sample, RSS reader, image fetcher, Pillow palette extractor, PyJWT token service, retry policy | domain, application |
-| `api` | FastAPI routers, request/response schemas, error handlers, auth dependency, exporters | application |
+| `infrastructure` | SQLAlchemy repository and unit of work, iTunes client and offline sample, RSS reader, image fetcher, Pillow palette extractor, PyJWT token service, retry policy, rate limiter, JSON logging and Prometheus metrics | domain, application |
+| `api` | FastAPI routers, request/response schemas, error handlers, auth dependency, exporters, request-context middleware (request id, access log, HTTP metrics) | application, infrastructure |
 
 Each package declares its public API with `__all__`, and other packages import only
 through it, so a package's internal modules can be reorganized freely. An architecture
@@ -231,7 +241,8 @@ A missing or broken cover never fails an ingestion: the podcast is stored with
 
 ### Ingestion runs inside the request
 
-A default bulk ingestion takes about 25 s (136 podcasts, their feeds and covers). That
+A default bulk ingestion takes about 25 s (136 results, of which 94 are kept and
+enriched with their feed and cover). That
 is acceptable for an operator-triggered endpoint and keeps the design simple. Request
 size is bounded (≤ 20 terms × ≤ 200 results).
 
@@ -309,9 +320,10 @@ reachable only from the internal network, and with several Uvicorn workers
 ## What I would do with more time
 
 - **Jobs for ingestion:** return `202` with a job id; run the work in a worker.
-- **Enrichment efficiency:** conditional requests (`ETag` / `If-Modified-Since`) for
-  feeds and covers, and skip palette extraction when the cover URL hasn't changed.
-  Today every run downloads everything again.
+- **Enrichment efficiency:** stop downloading each feed once its channel header has
+  been read (today up to 2 MB per feed for a few KB; feeds are ~23 s of a ~25 s run),
+  then conditional requests (`ETag` / `If-Modified-Since`) for feeds and covers, and
+  skip palette extraction when the cover URL hasn't changed.
 - **Pagination and search:** keyset pagination, and a relevance-ordered search option
   (`pg_trgm` similarity or full-text search).
 - **Observability:** tracing (OpenTelemetry) across the API, the database and the
@@ -357,7 +369,8 @@ store), so scaling it means putting queues between them rather than rewriting th
   platform, such as AWS ECS Fargate, Google Cloud Run or Kubernetes, with at least two
   replicas behind a load balancer that terminates TLS.
   - `/health` serves as the readiness check.
-  - Uvicorn would run with `--workers` sized to the CPU, instead of the single worker used locally.
+  - Uvicorn would run with `--workers` sized to the CPU, instead of the single worker
+    used locally.
 - **Database:** managed PostgreSQL (RDS or Cloud SQL) with automated backups,
   point-in-time recovery and a connection pooler (PgBouncer or RDS Proxy) sized for the
   replicas.

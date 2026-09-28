@@ -200,8 +200,10 @@ shared builders and fakes are in `tests/factories.py` and `tests/fakes.py`.
 src/podcast_service/
   domain/          entities, value objects, normalization rules, ports (no framework code)
   application/     use cases: ingestion, queries, auth; unit-of-work port
-  infrastructure/  PostgreSQL, iTunes client + offline sample, RSS, images, JWT, retries
-  api/             FastAPI routers, schemas, error handling, security, exporters
+  infrastructure/  PostgreSQL, iTunes client + offline sample, RSS, images, JWT, retries,
+                   rate limiting, JSON logging and Prometheus metrics
+  api/             FastAPI routers, schemas, error handling, security, exporters,
+                   request-context middleware (request id, access log, HTTP metrics)
   container.py     dependency-injection container (composition root)
   config.py        settings
 migrations/        Alembic
