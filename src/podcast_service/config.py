@@ -34,6 +34,10 @@ class Settings(DatabaseSettings):
 
     itunes_base_url: str = "https://itunes.apple.com"
     itunes_country: str = "US"
+    # iTunes documents roughly 20 calls per minute.
+    itunes_rate_limit_calls: int = Field(default=20, ge=1)
+    itunes_rate_limit_period_seconds: float = Field(default=60.0, gt=0)
+    itunes_rate_limit_max_wait_seconds: float = Field(default=30.0, ge=0)
     # Used by bulk ingestion when the request does not name its own terms.
     itunes_search_terms: list[str] = [
         "rock and roll",

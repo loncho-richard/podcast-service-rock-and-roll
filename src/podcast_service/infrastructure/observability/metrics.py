@@ -42,6 +42,17 @@ ITUNES_FALLBACKS = Counter(
 )
 
 
+RATE_LIMITED_CALLS = Counter(
+    "rate_limited_calls_total",
+    "Calls held back by our own rate limiter: delayed, or rejected past the max wait.",
+    ["upstream", "outcome"],
+)
+
+
+def record_rate_limit(upstream: str, *, waited: bool) -> None:
+    RATE_LIMITED_CALLS.labels(upstream, "waited" if waited else "rejected").inc()
+
+
 def record_upstream(upstream: str, *, succeeded: bool) -> None:
     UPSTREAM_REQUESTS.labels(upstream, "success" if succeeded else "failure").inc()
 

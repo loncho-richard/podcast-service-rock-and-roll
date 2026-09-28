@@ -209,9 +209,16 @@ A missing or broken cover never fails an ingestion: the podcast is stored with
 - **Last line of defence:** each adapter degrades gracefully on its own, and the
   enricher also contains any unexpected exception per podcast, so one bad cover
   can never fail the batch.
-- **Rate limiting on lookups:** a single-podcast lookup that is still rate-limited
-  (429) after retries counts as "source unavailable" (fallback sample or `503`),
-  never as "podcast not found".
+- **Our own rate limit for iTunes:** iTunes allows roughly 20 calls per minute, so a
+  process-wide sliding-window limiter keeps us under it instead of learning about it
+  from 429s. Every HTTP attempt counts, retries included. A call over budget waits
+  for a free slot, up to 30 s; past that it is treated as iTunes being unavailable
+  (the term fails, and if all do the bulk run uses the offline sample), so no request
+  hangs on the limiter. The limiter is per process: several replicas would need a
+  shared one (e.g. Redis).
+- **429s still handled:** if iTunes rate-limits us anyway, `Retry-After` is honoured,
+  and a single-podcast lookup still rate-limited after retries counts as "source
+  unavailable" (fallback sample or `503`), never as "podcast not found".
 - **No circuit breaker:** with synchronous, user-triggered ingestion it adds little.
   It becomes worth it once ingestion runs continuously (see below).
 
@@ -305,11 +312,11 @@ reachable only from the internal network, and with several Uvicorn workers
 - **Nice-to-haves from the brief:** I built the CI workflow
   (`.github/workflows/ci.yml`: ruff, mypy and the full test suite, integration tests
   included, on every push to `main` and every pull request) and structured logging
-  with a metrics endpoint (see Observability above). I left these out on purpose, to
-  keep the core small and solid:
+  with a metrics endpoint (see Observability above), and a rate limiter for iTunes
+  (see Resilience). I left these out on purpose, to keep the core small and solid:
   - Richer filtering (country, explicit, several genres).
   - Episode ingestion.
-  - Rate limiting or caching of iTunes calls.
+  - Caching iTunes responses.
 
 ## Evolving to continuous ingestion and millions of episodes
 
@@ -324,8 +331,9 @@ store), so scaling it means putting queues between them rather than rewriting th
   idempotent, so retries and duplicate messages are harmless.
 - **Scheduling feeds by activity:** refresh them adaptively (daily shows hourly,
   dormant ones weekly) with conditional GETs, which remove most of the bandwidth.
-- **Rate limits:** rate limiting per host, plus circuit breakers, keep us polite to
-  iTunes and feed hosts.
+- **Rate limits:** the iTunes limiter moves to a shared store (Redis) so every
+  worker draws from the same budget, feed hosts get their own per-host limits, and
+  circuit breakers stop hammering a host that is down.
 - **Storage:** episodes live in their own table keyed by `(podcast_id, guid)`,
   partitioned by publication date. Millions of rows fit comfortably in PostgreSQL with
   keyset pagination.

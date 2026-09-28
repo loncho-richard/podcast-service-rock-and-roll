@@ -72,6 +72,10 @@ ITUNES_BASE_URL=https://itunes.invalid docker compose up -d api
 
 `POST /ingestion/bulk` then answers with `"source": "fallback"`.
 
+Likewise, `ITUNES_RATE_LIMIT_CALLS=2 docker compose up -d api` makes our own iTunes
+rate limiter kick in: the default six search terms no longer fit in the budget, so
+the extra terms are skipped (see `rate_limited_calls_total` in `/metrics`).
+
 ## Endpoints
 
 | Method | Path | Auth | Description |
@@ -121,6 +125,7 @@ docker compose logs api | grep 3f9c            # everything one request did
 | `palette_failures_total` | | Covers that could not be turned into a palette. |
 | `upstream_requests_total` | `upstream`, `outcome` | iTunes, feed and cover calls after retries: `success` / `failure`. |
 | `itunes_fallbacks_total` | `operation` | Times the offline sample stood in for iTunes (`search`, `lookup`). |
+| `rate_limited_calls_total` | `upstream`, `outcome` | iTunes calls our limiter delayed (`waited`) or refused (`rejected`). |
 
 ## Configuration
 
@@ -138,6 +143,9 @@ the ones marked *compose* and gives them local defaults.
 | `LOG_FORMAT` | `json` | `json` (one object per line) or `text`. *compose* |
 | `ITUNES_BASE_URL` | `https://itunes.apple.com` | *compose* |
 | `ITUNES_COUNTRY` | `US` | iTunes store country. |
+| `ITUNES_RATE_LIMIT_CALLS` | `20` | Calls allowed per period (iTunes documents ~20/min). *compose* |
+| `ITUNES_RATE_LIMIT_PERIOD_SECONDS` | `60` | Length of the rate-limit window. |
+| `ITUNES_RATE_LIMIT_MAX_WAIT_SECONDS` | `30` | Longest a call waits for a slot before it counts as iTunes being unavailable. |
 | `ITUNES_SEARCH_TERMS` | `["rock and roll", "classic rock", "punk rock", "hard rock", "heavy metal", "rockabilly"]` | JSON list; used when `/ingestion/bulk` gets no `terms`. |
 | `HTTP_TIMEOUT_SECONDS` | `10` | Per request to iTunes, feeds and covers. |
 | `HTTP_RETRY_ATTEMPTS` | `3` | Attempts against iTunes on transient errors. |

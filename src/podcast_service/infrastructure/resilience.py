@@ -17,6 +17,8 @@ from tenacity import (
     wait_exponential_jitter,
 )
 
+from podcast_service.infrastructure.rate_limit import RateLimiter
+
 RETRYABLE_STATUS_CODES = frozenset({408, 425, 429, 500, 502, 503, 504})
 
 
@@ -54,10 +56,13 @@ async def get_with_retry(
     url: str,
     policy: RetryPolicy,
     params: dict[str, Any] | None = None,
+    rate_limiter: RateLimiter | None = None,
 ) -> httpx.Response:
     """GET that raises `httpx.HTTPStatusError` for non-2xx once retries are exhausted."""
     async for attempt in policy.retrying():
         with attempt:
+            if rate_limiter is not None:
+                await rate_limiter.acquire()
             response = await client.get(url, params=params)
             response.raise_for_status()
             return response

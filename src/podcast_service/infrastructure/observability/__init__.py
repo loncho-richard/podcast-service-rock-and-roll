@@ -10,6 +10,7 @@ from podcast_service.infrastructure.observability.metrics import (
     HTTP_REQUESTS,
     ITUNES_FALLBACKS,
     record_bulk_ingestion,
+    record_rate_limit,
     record_single_ingestion,
     record_upstream,
 )
@@ -23,6 +24,7 @@ __all__ = [
     "RequestIdFilter",
     "configure_logging",
     "record_bulk_ingestion",
+    "record_rate_limit",
     "record_single_ingestion",
     "record_upstream",
     "request_id_var",

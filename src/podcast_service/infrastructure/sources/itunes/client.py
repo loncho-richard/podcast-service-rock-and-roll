@@ -11,7 +11,13 @@ from podcast_service.domain.ingestion import (
     SourceMode,
     SourceUnavailableError,
 )
-from podcast_service.infrastructure import RetryPolicy, get_with_retry, is_transient
+from podcast_service.infrastructure import (
+    RateLimiter,
+    RateLimitExceededError,
+    RetryPolicy,
+    get_with_retry,
+    is_transient,
+)
 from podcast_service.infrastructure.observability import ITUNES_FALLBACKS, record_upstream
 from podcast_service.infrastructure.sources.itunes.fallback import ITunesSampleFallback
 from podcast_service.infrastructure.sources.itunes.mapper import map_result, result_id
@@ -28,12 +34,14 @@ class ITunesPodcastSource(PodcastSource):
         base_url: str,
         country: str,
         retry_policy: RetryPolicy,
+        rate_limiter: RateLimiter,
         fallback: ITunesSampleFallback,
     ) -> None:
         self._http = http_client
         self._base_url = base_url.rstrip("/")
         self._country = country
         self._retry_policy = retry_policy
+        self._rate_limiter = rate_limiter
         self._fallback = fallback
 
     async def search(self, terms: Sequence[str], limit: int) -> SourceBatch:
@@ -51,7 +59,7 @@ class ITunesPodcastSource(PodcastSource):
             }
             try:
                 results.extend(await self._get_results("/search", params))
-            except (httpx.HTTPError, ValueError) as exc:
+            except (httpx.HTTPError, ValueError, RateLimitExceededError) as exc:
                 failed_terms += 1
                 record_upstream("itunes", succeeded=False)
                 logger.warning("iTunes search for %r failed: %r", term, exc)
@@ -76,7 +84,7 @@ class ITunesPodcastSource(PodcastSource):
                 return None  # iTunes answers 400 for ids it cannot parse
             # Still failing after retries (e.g. 429 rate limit, 5xx): the source is down.
             return self._lookup_fallback(external_id, exc)
-        except (httpx.HTTPError, ValueError) as exc:
+        except (httpx.HTTPError, ValueError, RateLimitExceededError) as exc:
             return self._lookup_fallback(external_id, exc)
         record_upstream("itunes", succeeded=True)
 
@@ -99,7 +107,11 @@ class ITunesPodcastSource(PodcastSource):
 
     async def _get_results(self, path: str, params: dict[str, Any]) -> list[Any]:
         response = await get_with_retry(
-            self._http, f"{self._base_url}{path}", self._retry_policy, params
+            self._http,
+            f"{self._base_url}{path}",
+            self._retry_policy,
+            params,
+            rate_limiter=self._rate_limiter,
         )
         payload: Any = response.json()
         results = payload.get("results") if isinstance(payload, dict) else None

@@ -29,6 +29,7 @@ services:
       JWT_TTL_SECONDS: ${JWT_TTL_SECONDS:-3600}
       # Point this at an unreachable host to see the offline fallback in action.
       ITUNES_BASE_URL: ${ITUNES_BASE_URL:-https://itunes.apple.com}
+      ITUNES_RATE_LIMIT_CALLS: ${ITUNES_RATE_LIMIT_CALLS:-20}
     ports:
       - "8000:8000"
     depends_on:

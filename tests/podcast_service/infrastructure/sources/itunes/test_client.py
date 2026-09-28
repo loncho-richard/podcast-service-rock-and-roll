@@ -168,3 +168,23 @@ async def test_failures_and_fallbacks_are_counted(
     await source.search(["classic rock", "hard rock"], limit=25)
 
     assert (failures(), fallbacks()) == (2, 1)
+
+
+async def test_a_search_term_over_the_rate_limit_counts_as_failed(
+    respx_mock: respx.MockRouter, rate_limited_source: ITunesPodcastSource
+) -> None:
+    respx_mock.get(SEARCH_URL).mock(return_value=_ok(1))
+
+    batch = await rate_limited_source.search(["classic rock", "hard rock"], limit=25)
+
+    assert (_ids(batch), batch.mode) == (["1"], SourceMode.LIVE)
+
+
+async def test_a_lookup_over_the_rate_limit_falls_back_to_the_sample(
+    respx_mock: respx.MockRouter, rate_limited_source: ITunesPodcastSource
+) -> None:
+    route = respx_mock.get(LOOKUP_URL).mock(return_value=httpx.Response(503))
+
+    record = await rate_limited_source.lookup("9002")
+
+    assert (route.call_count, record.external_id if record else None) == (1, "9002")

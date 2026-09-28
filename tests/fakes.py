@@ -180,3 +180,18 @@ async def as_stream(podcasts: Iterable[Podcast]) -> AsyncIterator[Podcast]:
     """Present a plain list the way `PodcastRepository.stream_all` yields rows."""
     for podcast in podcasts:
         yield podcast
+
+
+class FakeClock:
+    """Time that only moves when something sleeps; `sleeps` records every wait."""
+
+    def __init__(self) -> None:
+        self.now = 0.0
+        self.sleeps: list[float] = []
+
+    def __call__(self) -> float:
+        return self.now
+
+    async def sleep(self, seconds: float) -> None:
+        self.sleeps.append(seconds)
+        self.now += seconds

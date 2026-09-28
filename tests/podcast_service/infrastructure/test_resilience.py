@@ -5,7 +5,13 @@ import pytest
 import respx
 from tenacity import AsyncRetrying, RetryCallState
 
-from podcast_service.infrastructure import RetryPolicy, get_with_retry, is_transient
+from fakes import FakeClock
+from podcast_service.infrastructure import (
+    RateLimiter,
+    RetryPolicy,
+    get_with_retry,
+    is_transient,
+)
 
 URL = "https://service.test/resource"
 
@@ -78,3 +84,17 @@ async def test_client_errors_fail_fast(
     with pytest.raises(httpx.HTTPStatusError):
         await get_with_retry(http_client, URL, retry_policy)
     assert route.call_count == 1
+
+
+async def test_every_attempt_goes_through_the_rate_limiter(
+    respx_mock: respx.MockRouter,
+    http_client: httpx.AsyncClient,
+    retry_policy: RetryPolicy,
+    patient_single_call_limiter: RateLimiter,
+    fake_clock: FakeClock,
+) -> None:
+    respx_mock.get(URL).mock(side_effect=[httpx.Response(503), httpx.Response(200)])
+
+    await get_with_retry(http_client, URL, retry_policy, rate_limiter=patient_single_call_limiter)
+
+    assert fake_clock.sleeps == [60]  # the retry waited for the next slot

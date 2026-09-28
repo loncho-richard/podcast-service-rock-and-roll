@@ -10,7 +10,7 @@ from podcast_service.application.ingestion import (
 from podcast_service.application.podcast import ExportPodcasts, GetPodcast, ListPodcasts
 from podcast_service.config import Settings
 from podcast_service.domain.ingestion import PodcastNormalizer, RockRelevancePolicy
-from podcast_service.infrastructure import RetryPolicy
+from podcast_service.infrastructure import RateLimiter, RetryPolicy
 from podcast_service.infrastructure.auth import JwtTokenService
 from podcast_service.infrastructure.feeds import RssFeedReader
 from podcast_service.infrastructure.imaging import HttpImageFetcher, PillowPaletteExtractor
@@ -73,6 +73,13 @@ class Container(containers.DeclarativeContainer):
         base_url=settings.provided.itunes_base_url,
         country=settings.provided.itunes_country,
         retry_policy=retry_policy,
+        rate_limiter=providers.Singleton(
+            RateLimiter,
+            name="itunes",
+            max_calls=settings.provided.itunes_rate_limit_calls,
+            period=settings.provided.itunes_rate_limit_period_seconds,
+            max_wait=settings.provided.itunes_rate_limit_max_wait_seconds,
+        ),
         fallback=providers.Singleton(ITunesSampleFallback),
     )
     normalizer = providers.Singleton(

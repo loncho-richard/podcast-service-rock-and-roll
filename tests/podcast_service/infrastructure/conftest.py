@@ -3,7 +3,8 @@ from collections.abc import AsyncIterator, Callable
 import httpx
 import pytest
 
-from podcast_service.infrastructure import RetryPolicy
+from fakes import FakeClock
+from podcast_service.infrastructure import RateLimiter, RetryPolicy
 
 
 @pytest.fixture
@@ -26,3 +27,31 @@ def status_error() -> Callable[..., httpx.HTTPStatusError]:
         return httpx.HTTPStatusError("failed", request=request, response=response)
 
     return build
+
+
+@pytest.fixture
+def fake_clock() -> FakeClock:
+    return FakeClock()
+
+
+@pytest.fixture
+def rate_limiter(fake_clock: FakeClock) -> RateLimiter:
+    """2 calls per minute, willing to wait up to 30 s for a slot."""
+    return RateLimiter(
+        "test", max_calls=2, period=60, max_wait=30, clock=fake_clock, sleep=fake_clock.sleep
+    )
+
+
+@pytest.fixture
+def single_call_limiter(fake_clock: FakeClock) -> RateLimiter:
+    """1 call per minute and never waits: every call after the first is rejected."""
+    return RateLimiter(
+        "test", max_calls=1, period=60, max_wait=0, clock=fake_clock, sleep=fake_clock.sleep
+    )
+
+
+@pytest.fixture
+def patient_single_call_limiter(fake_clock: FakeClock) -> RateLimiter:
+    return RateLimiter(
+        "test", max_calls=1, period=60, max_wait=120, clock=fake_clock, sleep=fake_clock.sleep
+    )
